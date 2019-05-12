@@ -132,6 +132,14 @@ class QuantumDecompTestCase(unittest.TestCase):
                             [0, 0, 1, 0],
                             [0, 1, 0, 0]])
 
+    def test_matrix_to_gates_SWAP(self):
+        SWAP = np.array([[1, 0, 0, 0],
+                         [0, 0, 1, 0],
+                         [0, 1, 0, 0],
+                         [0, 0, 0, 1]])
+        gates = qd.matrix_to_gates(SWAP)
+        assert np.allclose(SWAP, qd.gates_to_matrix(gates))
+
     def test_matrix_to_gates(self):
         for matrix_size in [2, 4, 8, 16]:
             for i in range(10):

@@ -1,7 +1,7 @@
 import numpy as np
 import math
 
-PAULI_X = np.array([[0, 1], [1, 0]])
+PAULI_X = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 
 
 def check_unitary(A):
@@ -37,8 +37,10 @@ class TwoLevelUnitary:
         self.index1 = index1
         self.index2 = index2
         self.matrix_2x2 = matrix2x2
+        self.order_indices()
 
     def __repr__(self):
+        self.order_indices()
         return "%s on (%d, %d)" % (
             str(self.matrix_2x2), self.index1, self.index2)
 
@@ -108,7 +110,7 @@ def two_level_decompose(A):
             else:
                 if abs(current_A[i, j - 1]) < 1e-9:
                     # Just swap columns.
-                    u_2x2 = np.array([[0, 1], [1, 0]])
+                    u_2x2 = PAULI_X
                 else:
                     u_2x2 = make_eliminating_matrix(
                         current_A[i, j - 1], current_A[i, j])
@@ -168,6 +170,8 @@ def unitary2x2_to_gates(A):
     phi = np.angle(np.linalg.det(A))
     if np.abs(phi) < 1e-9:
         return su_to_gates(A)
+    elif np.allclose(A, PAULI_X):
+        return [Gate2('X')]
     else:
         A = np.diag([1.0, np.exp(-1j * phi)]) @ A
         return su_to_gates(A) + [Gate2('R1', phi)]
