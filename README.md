@@ -2,7 +2,7 @@
 
 This is a python tool which takes as input unitary matrix and returns Q# code implementing it. 
 
-See example/example.ipynb on instructions how to use it.
+See example.ipynb on instructions how to use it.
 
 Code in qsharp/ verifies that output produced by this tool can be plugged into Q# program and produces expected reult. Some Q# code for dumping matrix was taken from [QuantumKatas](https://github.com/Microsoft/QuantumKatas) repository.
 
