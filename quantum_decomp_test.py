@@ -72,10 +72,10 @@ class QuantumDecompTestCase(unittest.TestCase):
                 A = np.array(unitary_group.rvs(matrix_size))
                 self.check_correct_product(A, qd.two_level_decompose(A))
 
-    def test_su2x2_to_gates(self):
+    def test_unitary2x2_to_gates(self):
         for i in range(100):
             A = np.array(unitary_group.rvs(2))
-            gates = qd.su2x2_to_gates(A)
+            gates = qd.unitary2x2_to_gates(A)
             assert len(gates) <= 4
 
             B = np.eye(2)

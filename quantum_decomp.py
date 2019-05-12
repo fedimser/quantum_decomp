@@ -72,24 +72,24 @@ class TwoLevelUnitary:
         qubit_count = int(math.log2(self.matrix_size))
 
         return [GateFC(gate2, qubit_id, qubit_count, flip_mask=flip_mask)
-                for gate2 in su2x2_to_gates(self.matrix_2x2)]
+                for gate2 in unitary2x2_to_gates(self.matrix_2x2)]
 
 
 # Returns list of two-level unitary matrices, which multiply to A.
 # Matrices are listed in application order, i.e. if aswer is [u_1, u_2,
 # u_3], it means A = u_3 u_2 u_1.
 def two_level_decompose(A):
-    # Returns such unitary matrix which by acting on column-vector [a, b]^T
-    # makes first element equal to zero.
+    # Returns unitary matrix U, s.t. [a, b] U = [c, 0].
+    # makes second element equal to zero.
     def make_eliminating_matrix(a, b):
         assert (np.abs(b) > 1e-9)
         a_sq = a * np.conj(a)
         b_sq = b * np.conj(b)
-        u11 = np.conj(b) / np.sqrt(a_sq + b_sq)
-        frac = a / b
-        result = u11 * np.array([[-1, frac], [np.conj(frac), 1]])
+        u11 = np.conj(a) / np.sqrt(a_sq + b_sq)
+        frac = b / a
+        result = u11 * np.array([[1, frac], [np.conj(frac), -1]])
         check_unitary(result)
-        assert (np.abs(result[0, 0] * a + result[0, 1] * b) < 1e-9)
+        assert (np.abs(result[0, 1] * a + result[1, 1] * b ) < 1e-9)
         return result
 
     check_unitary(A)
@@ -108,13 +108,12 @@ def two_level_decompose(A):
                     u_2x2 = np.array([[0, 1], [1, 0]])
                 else:
                     u_2x2 = make_eliminating_matrix(
-                        current_A[i, j], current_A[i, j - 1])
-                    u_2x2 = u_2x2.T
+                        current_A[i, j-1], current_A[i, j])
                 check_unitary(u_2x2)
                 current_A = current_A @ TwoLevelUnitary(
-                    u_2x2, n, j, j - 1).get_full_matrix()
+                    u_2x2, n, j-1, j).get_full_matrix()
                 u_2x2_inv = u_2x2.conj().T
-                result.append(TwoLevelUnitary(u_2x2_inv, n, j, j - 1))
+                result.append(TwoLevelUnitary(u_2x2_inv, n, j - 1, j))
                 assert(np.abs(current_A[i, j]) < 1e-9)
 
     result.append(TwoLevelUnitary(
@@ -159,9 +158,9 @@ def su_to_gates(A):
     return result
 
 
-# Decomposes 2x2 special unitary to gates Ry, Rz, R1.
+# Decomposes 2x2 unitary to gates Ry, Rz, R1.
 # R1(x) = diag(1, exp(i*x)).
-def su2x2_to_gates(A):
+def unitary2x2_to_gates(A):
     check_unitary(A)
     phi = np.angle(np.linalg.det(A))
     A = np.diag([1.0, np.exp(-1j * phi)]) @ A
