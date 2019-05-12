@@ -290,7 +290,7 @@ class GateFC(Gate):
             return 'Controlled R1(%s, (%.15f, qs[%d]));' % (
                 controls, self.gate2.arg, self.qubit_id)
         elif self.gate2.name == 'X':
-            return 'Controled X(%s, (qs[%d]));' % (controls, self.qubit_id)
+            return 'Controlled X(%s, (qs[%d]));' % (controls, self.qubit_id)
 
     def to_matrix(self):
         matrix_size = 2**self.qubit_count
@@ -384,32 +384,3 @@ def matrix_to_qsharp(A):
     code = '\n'.join(['    ' + gate.to_qsharp_command()
                       for gate in matrix_to_gates(A)])
     return header + code + '\n' + footer
-
-
-def gates_to_qasm(gates, file_name):
-    """Generates qasm code describing a circuit made of given gates."""
-    qubit_count = gates[0].qubit_count
-    qubit_def = '\n'.join(["qubit\tq%d" % i for i in range(qubit_count)])
-    gate_def = ''
-    gate_list = ''
-    gate_id = 0
-
-    for gate in gates:
-        gate_name = str(gate.gate2)
-        if isinstance(gate, GateSingle):
-            gate_def += "def\tg%d,0,'%s'\n" % (gate_id, gate_name)
-            gate_list += "g%d\tq%d\n" % (gate_id, gate.qubit_id)
-        else:
-            assert isinstance(gate, GateFC)
-            assert gate.flip_mask == 0
-            qubits_list = [i for i in range(
-                qubit_count) if i != gate.qubit_id] + [gate.qubit_id]
-            qubits_list = ','.join(['q%d' % i for i in qubits_list])
-            gate_def += "def\tg%d,%d,'%s'\n" % (gate_id,
-                                                qubit_count - 1, gate_name)
-            gate_list += "g%d\t%s\n" % (gate_id, qubits_list)
-        gate_id += 1
-
-    qasm_code = qubit_def + '\n\n' + gate_def + '\n' + gate_list
-    with open(file_name, 'w') as f:
-        f.write(qasm_code)
