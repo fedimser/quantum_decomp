@@ -72,7 +72,7 @@ class TwoLevelUnitary:
         qubit_count = int(math.log2(self.matrix_size))
 
         return [GateFC(gate2, qubit_id, qubit_count, flip_mask=flip_mask)
-                for gate2 in unitary_to_gates(self.matrix_2x2)]
+                for gate2 in su2x2_to_gates(self.matrix_2x2)]
 
 
 # Returns list of two-level unitary matrices, which multiply to A.
@@ -161,16 +161,15 @@ def su_to_gates(A):
 
 # Decomposes 2x2 special unitary to gates Ry, Rz, R1.
 # R1(x) = diag(1, exp(i*x)).
-def unitary_to_gates(A):
+def su2x2_to_gates(A):
     check_unitary(A)
     phi = np.angle(np.linalg.det(A))
     A = np.diag([1.0, np.exp(-1j * phi)]) @ A
     return su_to_gates(A) + [Gate2('R1', phi)]
 
-# Represents 2x2 gate.
-
 
 class Gate2:
+    """Represents gate acting on one qubit."""
     def __init__(self, name, arg=None):
         assert name in ['Ry', 'Rz', 'R1', 'X']
         self.name = name
@@ -196,16 +195,12 @@ class Gate2:
         else:
             return self.name
 
-
 # Represents gate acting on register of qubits.
 class Gate:
     pass
 
-
-
-
 class GateSingle(Gate):
-    """Represents gate acting on a single qubit."""
+    """Represents gate acting on a single qubit in a register."""
     def __init__(self, gate2, qubit_id, qubit_count):
         self.gate2 = gate2
         self.qubit_id = qubit_id
@@ -219,7 +214,7 @@ class GateSingle(Gate):
         elif self.gate2.name == 'R1':
             return 'R1(%.15f, qs[%d]);' % (self.gate2.arg, self.qubit_id)
         elif self.gate2.name == 'X':
-            return 'X(qs[%d])' % (self.qubit_id)
+            return 'X(qs[%d]);' % (self.qubit_id)
 
     def to_matrix(self):
         """Tensor product I x I x ... x `gate2.to_matrix()` x I x ... x I."""
@@ -245,7 +240,7 @@ class GateSingle(Gate):
         return ret
         
     def __repr__(self):
-        return str(self.gate2) + " on " + str(self.qubit_id)
+        return str(self.gate2) + " on bit " + str(self.qubit_id)
 
 class GateFC(Gate):
     """ Represents fully contolled gate.
@@ -274,13 +269,13 @@ class GateFC(Gate):
         controls = '[' + ', '.join(['qs[%d]' % i for i in controls]) + ']'
         if self.gate2.name in ('Rx', 'Ry', 'Rz'):
             # QSharp uses different sign.
-            return 'Controlled %s(%s, %.15f, qs[%d]);' % (
+            return 'Controlled %s(%s, (%.15f, qs[%d]));' % (
                 self.gate2.name, controls, -self.gate2.arg, self.qubit_id)
         elif self.gate2.name == 'R1':
-            return 'Controlled R1(%s, %.15f, qs[%d]);' % (
+            return 'Controlled R1(%s, (%.15f, qs[%d]));' % (
                 controls, self.gate2.arg, self.qubit_id)
         elif self.gate2.name == 'X':
-            return 'Controled X(%s, qs[%d])' % (controls, self.qubit_id)
+            return 'Controled X(%s, (qs[%d]));' % (controls, self.qubit_id)
 
     def to_matrix(self):
         matrix_size = 2**self.qubit_count
@@ -294,7 +289,7 @@ class GateFC(Gate):
         return matrix.get_full_matrix()
         
     def __repr__(self):
-        return "%s on %d FC qc=%d fm=%d" % (str(self.gate2), self.qubit_id, self.qubit_count, self.flip_mask)
+        return "%s on bit %d, fully controlled" % (str(self.gate2), self.qubit_id)
 
 
 def optimize_gates(gates):
@@ -340,7 +335,11 @@ def optimize_gates(gates):
 
 def matrix_to_gates(A):
     """Given unitary matrix A, retuns sequence of gates which implements
-    action of this matrix on register of qubits."""
+    action of this matrix on register of qubits.
+    
+    Input: A - 2^n x 2^N unitary matrix.
+    Returns: sequence of Gate objects.
+    """
     matrices = two_level_decompose_gray(A)
     gates = sum([matrix.to_fc_gates() for matrix in matrices], [])
     gates = optimize_gates(gates)
@@ -348,6 +347,7 @@ def matrix_to_gates(A):
 
 
 def gates_to_matrix(gates):
+    """Given sequence of gates, returns a unitary matrix which implemented by it.""" 
     result = np.eye(2 ** gates[0].qubit_count)
     for gate in gates:
         assert isinstance(gate, Gate)
@@ -357,5 +357,38 @@ def gates_to_matrix(gates):
 
 def matrix_to_qsharp(A):
     """Given unitary matrix A, retuns Q# code which implements
-    action of this matrix on register of qubits called `qs`."""
-    return '\n'.join([gate.to_qsharp_command() for gate in matrix_to_gates(A)])
+    action of this matrix on register of qubits called `qs`.
+    
+    Input: A - 2^N x 2^N unitary matrix.
+    Returns: string - Q# code.
+    """
+    header = "operation ApplyUnitaryMatrix (qs : Qubit[]) : Unit {\nbody (...) {\n"
+    footer = "  }\n}\n"
+    code = '\n'.join(['    ' + gate.to_qsharp_command() for gate in matrix_to_gates(A)])
+    return header + code + '\n' + footer
+    
+def gates_to_qasm(gates, file_name):
+    """Generates qasm code describing a circuit made of given gates."""
+    qubit_count = gates[0].qubit_count
+    qubit_def = '\n'.join(["qubit\tq%d" % i for i in range(qubit_count)])
+    gate_def = ''
+    gate_list = ''
+    gate_id = 0
+    
+    for gate in gates:
+        gate_name = str(gate.gate2)
+        if isinstance(gate, GateSingle):
+            gate_def += "def\tg%d,0,'%s'\n" % (gate_id, gate_name)
+            gate_list += "g%d\tq%d\n" % (gate_id, gate.qubit_id)
+        else:
+            assert isinstance(gate, GateFC)
+            assert gate.flip_mask == 0
+            qubits_list = [i for i in range(qubit_count) if i != gate.qubit_id] + [gate.qubit_id]
+            qubits_list = ','.join(['q%d' % i for i in qubits_list])
+            gate_def += "def\tg%d,%d,'%s'\n" % (gate_id, qubit_count-1, gate_name)
+            gate_list += "g%d\t%s\n" % (gate_id, qubits_list)
+        gate_id +=1
+        
+    qasm_code = qubit_def + '\n\n' + gate_def + '\n' + gate_list
+    with open(file_name, 'w') as f:
+        f.write(qasm_code)
