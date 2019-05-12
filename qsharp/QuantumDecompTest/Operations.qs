@@ -16,21 +16,19 @@
 			Controlled Ry([qs[1]], (-3.141592653589793, qs[0]));
 			Controlled R1([qs[1]], (3.141592653589793, qs[0]));
 			Controlled Ry([qs[0]], (-1.570796326794897, qs[1]));
-			Controlled R1([qs[0]], (3.141592653589793, qs[1]));
 			X(qs[1]);
 			Controlled Ry([qs[1]], (-1.910633236249018, qs[0]));
-			Controlled R1([qs[1]], (3.141592653589793, qs[0]));
 			X(qs[1]);
-			Controlled Rz([qs[0]], (1.570796326794896, qs[1]));
-			Controlled Ry([qs[0]], (-1.570796326794897, qs[1]));
+			Controlled Rz([qs[0]], (-4.712388980384691, qs[1]));
+			Controlled Ry([qs[0]], (-1.570796326794896, qs[1]));
 			Controlled Rz([qs[0]], (-1.570796326794896, qs[1]));
-			Controlled R1([qs[0]], (3.141592653589793, qs[1]));
-			Controlled Rz([qs[1]], (1.570796326794897, qs[0]));
-			Controlled Ry([qs[1]], (-3.141592653589793, qs[0]));
 			Controlled Rz([qs[1]], (-1.570796326794897, qs[0]));
-			Controlled R1([qs[1]], (-1.570796326794897, qs[0]));
+			Controlled Ry([qs[1]], (-3.141592653589793, qs[0]));
+			Controlled Rz([qs[1]], (1.570796326794897, qs[0]));
+			Controlled R1([qs[1]], (1.570796326794896, qs[0]));
 		}
 	}
+
 
 	// Applies unitary operation to every basis state and dumps results to files.
 	operation DumpUnitary (N : Int, unitary: (Qubit[] => Unit)) : Unit {

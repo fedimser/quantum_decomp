@@ -82,14 +82,17 @@ def two_level_decompose(A):
     # Returns unitary matrix U, s.t. [a, b] U = [c, 0].
     # makes second element equal to zero.
     def make_eliminating_matrix(a, b):
-        assert (np.abs(b) > 1e-9)
-        a_sq = a * np.conj(a)
-        b_sq = b * np.conj(b)
-        u11 = np.conj(a) / np.sqrt(a_sq + b_sq)
-        frac = b / a
-        result = u11 * np.array([[1, frac], [np.conj(frac), -1]])
-        check_unitary(result)
-        assert (np.abs(result[0, 1] * a + result[1, 1] * b ) < 1e-9)
+        assert (np.abs(a) > 1e-9 and np.abs(b) > 1e-9)
+        theta = np.arctan(np.abs(b / a))
+        lmbda = -np.angle(a)
+        mu = np.pi + np.angle(b) - np.angle(a) - lmbda
+        result = np.array([[np.cos(theta) * np.exp(1j * lmbda),
+                            np.sin(theta) * np.exp(1j * mu)],
+                           [-np.sin(theta) * np.exp(-1j * mu),
+                            np.cos(theta) * np.exp(-1j * lmbda)]])
+        check_special_unitary(result)
+        assert np.allclose(np.angle(result[0, 0] * a + result[1, 0] * b), 0)
+        assert (np.abs(result[0, 1] * a + result[1, 1] * b) < 1e-9)
         return result
 
     check_unitary(A)
@@ -108,10 +111,10 @@ def two_level_decompose(A):
                     u_2x2 = np.array([[0, 1], [1, 0]])
                 else:
                     u_2x2 = make_eliminating_matrix(
-                        current_A[i, j-1], current_A[i, j])
+                        current_A[i, j - 1], current_A[i, j])
                 check_unitary(u_2x2)
                 current_A = current_A @ TwoLevelUnitary(
-                    u_2x2, n, j-1, j).get_full_matrix()
+                    u_2x2, n, j - 1, j).get_full_matrix()
                 u_2x2_inv = u_2x2.conj().T
                 result.append(TwoLevelUnitary(u_2x2_inv, n, j - 1, j))
                 assert(np.abs(current_A[i, j]) < 1e-9)
@@ -163,12 +166,16 @@ def su_to_gates(A):
 def unitary2x2_to_gates(A):
     check_unitary(A)
     phi = np.angle(np.linalg.det(A))
-    A = np.diag([1.0, np.exp(-1j * phi)]) @ A
-    return su_to_gates(A) + [Gate2('R1', phi)]
+    if np.abs(phi) < 1e-9:
+        return su_to_gates(A)
+    else:
+        A = np.diag([1.0, np.exp(-1j * phi)]) @ A
+        return su_to_gates(A) + [Gate2('R1', phi)]
 
 
 class Gate2:
     """Represents gate acting on one qubit."""
+
     def __init__(self, name, arg=None):
         assert name in ['Ry', 'Rz', 'R1', 'X']
         self.name = name
@@ -187,19 +194,23 @@ class Gate2:
 
     def is_identity(self):
         return np.linalg.norm(self.to_matrix() - np.eye(2)) < 1e-10
-        
+
     def __repr__(self):
-        if not self.arg is None:
+        if self.arg is not None:
             return self.name + "(" + str(self.arg) + ")"
         else:
             return self.name
 
 # Represents gate acting on register of qubits.
+
+
 class Gate:
     pass
 
+
 class GateSingle(Gate):
     """Represents gate acting on a single qubit in a register."""
+
     def __init__(self, gate2, qubit_id, qubit_count):
         self.gate2 = gate2
         self.qubit_id = qubit_id
@@ -237,9 +248,10 @@ class GateSingle(Gate):
                 i * tile_size:(i + 1) * tile_size] = tile
 
         return ret
-        
+
     def __repr__(self):
         return str(self.gate2) + " on bit " + str(self.qubit_id)
+
 
 class GateFC(Gate):
     """ Represents fully contolled gate.
@@ -260,7 +272,7 @@ class GateFC(Gate):
         # On one qubit controlled gate is just single-qubit gate.
         if self.qubit_count == 1:
             return GateSingle(self.gate2, self.qubit_id, 1).to_qsharp_command()
-            
+
         if self.flip_mask != 0:
             raise ValueError("flip_mask must be zero.")
 
@@ -286,9 +298,10 @@ class GateFC(Gate):
             index1,
             index2)
         return matrix.get_full_matrix()
-        
+
     def __repr__(self):
-        return "%s on bit %d, fully controlled" % (str(self.gate2), self.qubit_id)
+        return "%s on bit %d, fully controlled" % (
+            str(self.gate2), self.qubit_id)
 
 
 def optimize_gates(gates):
@@ -302,6 +315,7 @@ def optimize_gates(gates):
 
     global flip_mask
     flip_mask = 0
+
     def dump_flips():
         global flip_mask
         for qubit_id in range(qubit_count):
@@ -335,7 +349,7 @@ def optimize_gates(gates):
 def matrix_to_gates(A):
     """Given unitary matrix A, retuns sequence of gates which implements
     action of this matrix on register of qubits.
-    
+
     Input: A - 2^n x 2^N unitary matrix.
     Returns: sequence of Gate objects.
     """
@@ -346,7 +360,7 @@ def matrix_to_gates(A):
 
 
 def gates_to_matrix(gates):
-    """Given sequence of gates, returns a unitary matrix which implemented by it.""" 
+    """Given sequence of gates, returns a unitary matrix which implemented by it."""
     result = np.eye(2 ** gates[0].qubit_count)
     for gate in gates:
         assert isinstance(gate, Gate)
@@ -357,15 +371,17 @@ def gates_to_matrix(gates):
 def matrix_to_qsharp(A):
     """Given unitary matrix A, retuns Q# code which implements
     action of this matrix on register of qubits called `qs`.
-    
+
     Input: A - 2^N x 2^N unitary matrix.
     Returns: string - Q# code.
     """
     header = "operation ApplyUnitaryMatrix (qs : Qubit[]) : Unit {\nbody (...) {\n"
     footer = "  }\n}\n"
-    code = '\n'.join(['    ' + gate.to_qsharp_command() for gate in matrix_to_gates(A)])
+    code = '\n'.join(['    ' + gate.to_qsharp_command()
+                      for gate in matrix_to_gates(A)])
     return header + code + '\n' + footer
-    
+
+
 def gates_to_qasm(gates, file_name):
     """Generates qasm code describing a circuit made of given gates."""
     qubit_count = gates[0].qubit_count
@@ -373,7 +389,7 @@ def gates_to_qasm(gates, file_name):
     gate_def = ''
     gate_list = ''
     gate_id = 0
-    
+
     for gate in gates:
         gate_name = str(gate.gate2)
         if isinstance(gate, GateSingle):
@@ -382,12 +398,14 @@ def gates_to_qasm(gates, file_name):
         else:
             assert isinstance(gate, GateFC)
             assert gate.flip_mask == 0
-            qubits_list = [i for i in range(qubit_count) if i != gate.qubit_id] + [gate.qubit_id]
+            qubits_list = [i for i in range(
+                qubit_count) if i != gate.qubit_id] + [gate.qubit_id]
             qubits_list = ','.join(['q%d' % i for i in qubits_list])
-            gate_def += "def\tg%d,%d,'%s'\n" % (gate_id, qubit_count-1, gate_name)
+            gate_def += "def\tg%d,%d,'%s'\n" % (gate_id,
+                                                qubit_count - 1, gate_name)
             gate_list += "g%d\t%s\n" % (gate_id, qubits_list)
-        gate_id +=1
-        
+        gate_id += 1
+
     qasm_code = qubit_def + '\n\n' + gate_def + '\n' + gate_list
     with open(file_name, 'w') as f:
         f.write(qasm_code)

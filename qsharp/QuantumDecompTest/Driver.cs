@@ -78,7 +78,6 @@ namespace Quantum.QuantumDecompTest
                             allowedPhaseShift = matrix2[i, j] / matrix1[i, j];
                             Debug.Assert(Math.Abs(allowedPhaseShift.Magnitude-1)<EPS);
                         } 
-                        Console.WriteLine("{0} {1} {2}", i, j, matrix1[i, j]);
                         Debug.Assert((matrix1[i, j] * allowedPhaseShift - matrix2[i, j]).Magnitude < EPS);
                     }
                 }

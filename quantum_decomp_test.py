@@ -39,7 +39,7 @@ class QuantumDecompTestCase(unittest.TestCase):
 
     def test_decompose_3x3(self):
         w = np.exp((2j / 3) * np.pi)
-        A = w * np.array([[1, 1, 1], 
+        A = w * np.array([[1, 1, 1],
                           [1, w, w * w],
                           [1, w * w, w]]) / np.sqrt(3)
         self.check_decompose(A)
@@ -60,9 +60,9 @@ class QuantumDecompTestCase(unittest.TestCase):
         self.check_decompose_gray(np.eye(4).T)
 
         w = np.exp((2j / 3) * np.pi)
-        A = w * np.array([[1, 1, 1, 0], 
+        A = w * np.array([[1, 1, 1, 0],
                           [1, w, w * w, 0],
-                          [1, w * w, w, 0], 
+                          [1, w * w, w, 0],
                           [0, 0, 0, np.sqrt(3)]]) / np.sqrt(3)
         self.check_decompose_gray(A)
 
@@ -131,19 +131,20 @@ class QuantumDecompTestCase(unittest.TestCase):
                             [0, 0, 0, 1],
                             [0, 0, 1, 0],
                             [0, 1, 0, 0]])
-                            
+
     def test_matrix_to_gates(self):
         for matrix_size in [2, 4, 8, 16]:
             for i in range(10):
                 A = np.array(unitary_group.rvs(matrix_size))
                 gates = qd.matrix_to_gates(A)
                 assert np.allclose(A, qd.gates_to_matrix(gates))
-                
+
     def test_matrix_to_gates_identity(self):
         A = np.eye(16)
         gates = qd.matrix_to_gates(A)
-        
+
         assert len(gates) == 0
+
 
 if __name__ == '__main__':
     unittest.main()
