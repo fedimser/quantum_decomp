@@ -22,11 +22,14 @@ def check_power_of_two(x):
     if 2**int(math.log2(x)) != x:
         raise ValueError(str(x) + " is not a power of two.")
 
-# Represents two-lebel unitary matrix, i.e. a unitary matrix obtained from the identity
-# matrix by changing a 2x2 principal submatrix.
-
 
 class TwoLevelUnitary:
+    """Represents two-level unitary matrix.
+
+    Two-level uniary matrix is a unitary matrix obtained from the identity
+    matrix by changing a 2x2 principal submatrix.
+    """
+
     def __init__(self, matrix2x2, matrix_size, index1, index2):
         assert index1 != index2
         assert index1 < matrix_size and index2 < matrix_size
@@ -62,8 +65,8 @@ class TwoLevelUnitary:
         self.index1 = perm[self.index1]
         self.index2 = perm[self.index2]
 
-    # Returns list of fully controlled gates implementing this matrix.
     def to_fc_gates(self):
+        """Returns list of fully controlled gates implementing this matrix."""
         self.order_indices()
         qubit_id_mask = self.index1 ^ self.index2
         check_power_of_two(qubit_id_mask)
@@ -77,13 +80,17 @@ class TwoLevelUnitary:
                 for gate2 in unitary2x2_to_gates(self.matrix_2x2)]
 
 
-# Returns list of two-level unitary matrices, which multiply to A.
-# Matrices are listed in application order, i.e. if aswer is [u_1, u_2,
-# u_3], it means A = u_3 u_2 u_1.
 def two_level_decompose(A):
-    # Returns unitary matrix U, s.t. [a, b] U = [c, 0].
-    # makes second element equal to zero.
+    """Returns list of two-level unitary matrices, which multiply to A.
+
+    Matrices are listed in application order, i.e. if aswer is [u_1, u_2, u_3],
+    it means A = u_3 u_2 u_1.
+    """
     def make_eliminating_matrix(a, b):
+        """Returns unitary matrix U, s.t. [a, b] U = [c, 0].
+
+        Makes second element equal to zero.
+        """
         assert (np.abs(a) > 1e-9 and np.abs(b) > 1e-9)
         theta = np.arctan(np.abs(b / a))
         lmbda = -np.angle(a)
@@ -128,7 +135,9 @@ def two_level_decompose(A):
 
 def two_level_decompose_gray(A):
     """Retunrs list of two-level matrices, which multiplu to A.
-    Guarantees that each matrix acts on single bit."""
+
+    Guarantees that each matrix acts on single bit.
+    """
     N = A.shape[0]
     check_power_of_two(N)
     assert A.shape == (N, N), "Matrix must be square."
@@ -148,7 +157,9 @@ def two_level_decompose_gray(A):
 
 def su_to_gates(A):
     """Decomposes 2x2 special unitary to gates Ry, Rz.
-    R_k(x) = exp(0.5*i*x*sigma_k)."""
+
+    R_k(x) = exp(0.5*i*x*sigma_k).
+    """
     check_special_unitary(A)
     u00 = A[0, 0]
     u01 = A[0, 1]
@@ -163,9 +174,11 @@ def su_to_gates(A):
     return result
 
 
-# Decomposes 2x2 unitary to gates Ry, Rz, R1.
-# R1(x) = diag(1, exp(i*x)).
 def unitary2x2_to_gates(A):
+    """Decomposes 2x2 unitary to gates Ry, Rz, R1.
+
+    R1(x) = diag(1, exp(i*x)).
+    """
     check_unitary(A)
     phi = np.angle(np.linalg.det(A))
     if np.abs(phi) < 1e-9:
@@ -205,10 +218,9 @@ class Gate2:
         else:
             return self.name
 
-# Represents gate acting on register of qubits.
-
 
 class Gate:
+    """Represents gate acting on register of qubits."""
     pass
 
 
@@ -259,6 +271,7 @@ class GateSingle(Gate):
 
 class GateFC(Gate):
     """ Represents fully contolled gate.
+
     `flip_mask` has ones at positions, for which qubit should be flipped before and after
     applying operation.
     """
@@ -310,7 +323,8 @@ class GateFC(Gate):
 
 def optimize_gates(gates):
     """Cancels consequent NOT gates. Skips identity gates.
-    After execution all fully controlled gates will have `flip_mask=0`."""
+    After execution all fully controlled gates will have `flip_mask=0`.
+    """
     qubit_count = gates[0].qubit_count
     for gate in gates:
         assert gate.qubit_count == qubit_count
