@@ -62,9 +62,8 @@ class TwoLevelUnitary:
 
     def multiply_right(self, A):
         """M.multiply_right(A) is equivalent to A = A @ M.get_full_matrix()."""
-        result = A[:, (self.index1, self.index2)] @ self.matrix_2x2
-        A[:, self.index1] = result[:, 0]
-        A[:, self.index2] = result[:, 1]
+        idx = (self.index1, self.index2)
+        A[:, idx] = A[:, idx] @ self.matrix_2x2
 
     def inv(self):
         return TwoLevelUnitary(self.matrix_2x2.conj().T,
@@ -137,7 +136,6 @@ def two_level_decompose(A):
                 u_2x2 = TwoLevelUnitary(u_2x2, n, j - 1, j)
                 u_2x2.multiply_right(current_A)
                 result.append(u_2x2.inv())
-                assert(np.abs(current_A[i, j]) < 1e-9)
 
     result.append(TwoLevelUnitary(
         current_A[n - 2:n, n - 2:n], n, n - 2, n - 1))
