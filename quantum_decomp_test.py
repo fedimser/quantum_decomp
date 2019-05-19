@@ -88,6 +88,19 @@ class QuantumDecompTestCase(unittest.TestCase):
         gates = matrix.to_fc_gates()
         assert np.allclose(qd.gates_to_matrix(gates), matrix.get_full_matrix())
 
+    def test_TwoLevelUnitary_inv(self):
+        matrix1 = qd.TwoLevelUnitary(unitary_group.rvs(2), 8, 1, 5)
+        matrix2 = matrix1.inv()
+        product = matrix1.get_full_matrix() @ matrix2.get_full_matrix()
+        assert np.allclose(product, np.eye(8))
+
+    def test_TwoLevelUnitary_multiply_right(self):
+        matrix_2x2 = qd.TwoLevelUnitary(unitary_group.rvs(2), 8, 1, 5)
+        A1 = unitary_group.rvs(8)
+        A2 = np.array(A1)
+        matrix_2x2.multiply_right(A1)
+        assert np.allclose(A1, A2 @ matrix_2x2.get_full_matrix())
+
     def test_Gate2_to_matrix(self):
         assert np.allclose(qd.Gate2('X').to_matrix(), [[0, 1], [1, 0]])
 

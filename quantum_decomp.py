@@ -53,12 +53,24 @@ class TwoLevelUnitary:
             self.matrix_2x2 = PAULI_X @ self.matrix_2x2 @ PAULI_X
 
     def get_full_matrix(self):
-        matrix_full = np.array(np.eye(self.matrix_size, dtype=np.complex128))
+        matrix_full = np.eye(self.matrix_size, dtype=np.complex128)
         matrix_full[self.index1, self.index1] = self.matrix_2x2[0, 0]
         matrix_full[self.index1, self.index2] = self.matrix_2x2[0, 1]
         matrix_full[self.index2, self.index1] = self.matrix_2x2[1, 0]
         matrix_full[self.index2, self.index2] = self.matrix_2x2[1, 1]
         return matrix_full
+
+    def multiply_right(self, A):
+        """M.multiply_right(A) is equivalent to A = A @ M.get_full_matrix()."""
+        result = A[:, (self.index1, self.index2)] @ self.matrix_2x2
+        A[:, self.index1] = result[:, 0]
+        A[:, self.index2] = result[:, 1]
+
+    def inv(self):
+        return TwoLevelUnitary(self.matrix_2x2.conj().T,
+                               self.matrix_size,
+                               self.index1,
+                               self.index2)
 
     def apply_permutation(self, perm):
         assert(len(perm) == self.matrix_size)
@@ -107,7 +119,8 @@ def two_level_decompose(A):
     check_unitary(A)
     n = A.shape[0]
     result = []
-    current_A = A
+    # Make a copy, because we are going to mutate it.
+    current_A = np.array(A)
 
     for i in range(n - 2):
         for j in range(n - 1, i, -1):
@@ -121,11 +134,9 @@ def two_level_decompose(A):
                 else:
                     u_2x2 = make_eliminating_matrix(
                         current_A[i, j - 1], current_A[i, j])
-                check_unitary(u_2x2)
-                current_A = current_A @ TwoLevelUnitary(
-                    u_2x2, n, j - 1, j).get_full_matrix()
-                u_2x2_inv = u_2x2.conj().T
-                result.append(TwoLevelUnitary(u_2x2_inv, n, j - 1, j))
+                u_2x2 = TwoLevelUnitary(u_2x2, n, j - 1, j)
+                u_2x2.multiply_right(current_A)
+                result.append(u_2x2.inv())
                 assert(np.abs(current_A[i, j]) < 1e-9)
 
     result.append(TwoLevelUnitary(
@@ -268,6 +279,9 @@ class GateSingle(Gate):
     def __repr__(self):
         return str(self.gate2) + " on bit " + str(self.qubit_id)
 
+    def type(self):
+        return self.gate2.name + "-single"
+
 
 class GateFC(Gate):
     """ Represents fully contolled gate.
@@ -319,6 +333,9 @@ class GateFC(Gate):
     def __repr__(self):
         return "%s on bit %d, fully controlled" % (
             str(self.gate2), self.qubit_id)
+
+    def type(self):
+        return self.gate2.name + "-FC"
 
 
 def optimize_gates(gates):
