@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import quantum_decomp as qd
-from scipy.stats import unitary_group
+from scipy.stats import unitary_group, ortho_group
 
 
 class QuantumDecompTestCase(unittest.TestCase):
@@ -164,12 +164,19 @@ class QuantumDecompTestCase(unittest.TestCase):
         gates = qd.matrix_to_gates(SWAP)
         assert np.allclose(SWAP, qd.gates_to_matrix(gates))
 
-    def test_matrix_to_gates(self):
+    def test_matrix_to_gates_random_unitary(self):
+        np.random.seed(100)
         for matrix_size in [2, 4, 8, 16]:
-            for i in range(10):
+            for _ in range(10):
                 A = np.array(unitary_group.rvs(matrix_size))
-                gates = qd.matrix_to_gates(A)
-                assert np.allclose(A, qd.gates_to_matrix(gates))
+                self.check_decomposition(A, qd.matrix_to_gates(A))
+
+    def test_matrix_to_gates_random_orthogonal(self):
+        np.random.seed(100)
+        for matrix_size in [2, 4, 8]:
+            for _ in range(10):
+                A = np.array(ortho_group.rvs(matrix_size))
+                self.check_decomposition(A, qd.matrix_to_gates(A))
 
     def test_matrix_to_gates_identity(self):
         A = np.eye(16)
@@ -205,8 +212,14 @@ class QuantumDecompTestCase(unittest.TestCase):
 
     def test_decompose_4x4_optimal_random_unitary(self):
         np.random.seed(100)
-        for _ in range(20):
+        for _ in range(10):
             A = unitary_group.rvs(4)
+            self.check_decomposition(A, qd.decompose_4x4_optimal(A))
+
+    def test_decompose_4x4_optimal_random_orthogonal(self):
+        np.random.seed(100)
+        for _ in range(10):
+            A = ortho_group.rvs(4)
             self.check_decomposition(A, qd.decompose_4x4_optimal(A))
 
 

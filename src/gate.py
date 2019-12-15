@@ -114,7 +114,7 @@ class GateFC(Gate):
 
 
 def gates_to_matrix(gates):
-    """Converts gate sequence to matrix by it."""
+    """Converts gate sequence to matrix implemented by this sequence."""
     result = np.eye(2 ** gates[0].qubit_count)
     for gate in gates:
         assert isinstance(gate, Gate)
