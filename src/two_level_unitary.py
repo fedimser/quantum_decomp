@@ -4,6 +4,7 @@ import numpy as np
 from src.decompose_2x2 import unitary2x2_to_gates
 from src.utils import PAULI_X, is_unitary, is_power_of_two
 
+
 class TwoLevelUnitary:
     """Represents two-level unitary matrix.
 
@@ -60,7 +61,7 @@ class TwoLevelUnitary:
     def to_fc_gates(self):
         """Returns list of fully controlled gates implementing this matrix."""
         from src.gate import GateFC
-        
+
         self.order_indices()
         qubit_id_mask = self.index1 ^ self.index2
         assert is_power_of_two(qubit_id_mask)

@@ -166,6 +166,24 @@ class QuantumDecompTestCase(unittest.TestCase):
 
         assert len(gates) == 0
 
+    def test_matrix_to_qsharp_SWAP(self):
+        SWAP = np.array([[1, 0, 0, 0],
+                         [0, 0, 1, 0],
+                         [0, 1, 0, 0],
+                         [0, 0, 0, 1]])
+
+        qsharp_code = qd.matrix_to_qsharp(SWAP)
+
+        expected = "\n".join([
+            "operation ApplyUnitaryMatrix (qs : Qubit[]) : Unit {",
+            "body (...) {",
+            "    Controlled X([qs[1]], (qs[0]));",
+            "    Controlled X([qs[0]], (qs[1]));",
+            "    Controlled X([qs[1]], (qs[0]));",
+            "  }",
+            "}", ""])
+        self.assertEqual(qsharp_code, expected)
+
 
 if __name__ == '__main__':
     unittest.main()

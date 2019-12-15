@@ -137,7 +137,7 @@ def matrix_to_gates(A):
 
 
 def gates_to_matrix(gates):
-    """Given sequence of gates, returns a unitary matrix which implemented by it."""
+    """Converts gate sequence to matrix by it."""
     result = np.eye(2 ** gates[0].qubit_count)
     for gate in gates:
         assert isinstance(gate, Gate)
@@ -152,7 +152,8 @@ def matrix_to_qsharp(A):
     Input: A - 2^N x 2^N unitary matrix.
     Returns: string - Q# code.
     """
-    header = "operation ApplyUnitaryMatrix (qs : Qubit[]) : Unit {\nbody (...) {\n"
+    header = ("operation ApplyUnitaryMatrix (qs : Qubit[]) : Unit {\n"
+              "body (...) {\n")
     footer = "  }\n}\n"
     code = '\n'.join(['    ' + gate.to_qsharp_command()
                       for gate in matrix_to_gates(A)])

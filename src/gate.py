@@ -4,7 +4,6 @@ from src.gate2 import Gate2
 from src.two_level_unitary import TwoLevelUnitary
 
 
-
 class Gate:
     """Represents gate acting on register of qubits."""
     pass
@@ -32,6 +31,7 @@ class GateSingle(Gate):
         """Tensor product I x I x ... x `gate2.to_matrix()` x I x ... x I."""
         matrix = self.gate2.to_matrix()
         tile_size = 2**(self.qubit_id + 1)
+        ts2 = tile_size // 2  # Half tile size.
 
         if (self.qubit_id == 0):
             tile = matrix
@@ -40,8 +40,8 @@ class GateSingle(Gate):
             subtile = np.eye(tile_size // 2)
             for i in range(2):
                 for j in range(2):
-                    tile[i * (tile_size // 2):(i + 1) * (tile_size // 2), j *
-                         (tile_size // 2):(j + 1) * (tile_size // 2)] = subtile * matrix[i, j]
+                    tile[i * ts2:(i + 1) * ts2, j *
+                         ts2:(j + 1) * ts2] = subtile * matrix[i, j]
 
         matrix_size = 2 ** self.qubit_count
         ret = np.zeros((matrix_size, matrix_size), dtype=np.complex128)
@@ -61,8 +61,8 @@ class GateSingle(Gate):
 class GateFC(Gate):
     """ Represents fully contolled gate.
 
-    `flip_mask` has ones at positions, for which qubit should be flipped before and after
-    applying operation.
+    `flip_mask` has ones at positions, for which qubit should be flipped before 
+    and after applying operation.
     """
 
     def __init__(self, gate2, qubit_id, qubit_count, flip_mask=0):
