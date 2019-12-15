@@ -61,7 +61,7 @@ class GateSingle(Gate):
 class GateFC(Gate):
     """ Represents fully contolled gate.
 
-    `flip_mask` has ones at positions, for which qubit should be flipped before 
+    `flip_mask` has ones at positions, for which qubit should be flipped before
     and after applying operation.
     """
 
@@ -111,3 +111,17 @@ class GateFC(Gate):
 
     def type(self):
         return self.gate2.name + "-FC"
+
+
+def gates_to_matrix(gates):
+    """Converts gate sequence to matrix by it."""
+    result = np.eye(2 ** gates[0].qubit_count)
+    for gate in gates:
+        assert isinstance(gate, Gate)
+        result = gate.to_matrix() @ result
+    return result
+
+
+def apply_on_qubit(gates, qubit_id, qubit_count):
+    """Converts Gate2 gates to GateSingle gates acting on the same qubit."""
+    return [GateSingle(gate, qubit_id, qubit_count) for gate in gates]

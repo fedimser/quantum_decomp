@@ -6,17 +6,28 @@ from scipy.stats import unitary_group
 
 class QuantumDecompTestCase(unittest.TestCase):
 
+    def assertAllClose(self, x, y, tol=1e-9):
+        diff = np.abs(x - y)
+        if np.max(diff) > tol:
+            raise AssertionError(
+                'Not close:\nx=%s\ny=%s\ndiff=%s' %
+                (x, y, diff))
+
     def check_correct_product(self, A, matrices):
         n = A.shape[0]
         B = np.eye(n)
         for matrix in matrices:
             assert matrix.matrix_size == n
             B = matrix.get_full_matrix() @ B
-        assert(np.linalg.norm(B - A) < 1e-9)
+        assert np.allclose(A, B)
 
     def check_acting_on_same_bit(self, matrices):
         for matrix in matrices:
             assert qd.is_power_of_two(matrix.index1 ^ matrix.index2)
+
+    def check_decomposition(self, matrix, gates, tol=1e-9):
+        """Checks that `gates` is decomposition of `matrix`."""
+        self.assertAllClose(matrix, qd.gates_to_matrix(gates), tol=tol)
 
     def check_decompose(self, matrix):
         matrix = np.array(matrix)
@@ -183,6 +194,20 @@ class QuantumDecompTestCase(unittest.TestCase):
             "  }",
             "}", ""])
         self.assertEqual(qsharp_code, expected)
+
+    def test_decompose_4x4_optimal_(self):
+        w = np.exp((2j / 3) * np.pi)
+        A = w * np.array([[1, 1, 1, 0],
+                          [1, w, w * w, 0],
+                          [1, w * w, w, 0],
+                          [0, 0, 0, np.sqrt(3)]]) / np.sqrt(3)
+        self.check_decomposition(A, qd.decompose_4x4_optimal(A), tol=3e-8)
+
+    def test_decompose_4x4_optimal_random_unitary(self):
+        np.random.seed(100)
+        for _ in range(20):
+            A = unitary_group.rvs(4)
+            self.check_decomposition(A, qd.decompose_4x4_optimal(A))
 
 
 if __name__ == '__main__':

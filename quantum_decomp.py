@@ -1,7 +1,8 @@
 import numpy as np
 
 from src.decompose_2x2 import unitary2x2_to_gates
-from src.gate import Gate, GateFC, GateSingle
+from src.decompose_4x4 import decompose_4x4_optimal
+from src.gate import Gate, GateFC, GateSingle, gates_to_matrix
 from src.gate2 import Gate2
 from src.two_level_unitary import TwoLevelUnitary
 from src.utils import PAULI_X, is_unitary, is_special_unitary, is_power_of_two
@@ -134,15 +135,6 @@ def matrix_to_gates(A):
     gates = sum([matrix.to_fc_gates() for matrix in matrices], [])
     gates = optimize_gates(gates)
     return gates
-
-
-def gates_to_matrix(gates):
-    """Converts gate sequence to matrix by it."""
-    result = np.eye(2 ** gates[0].qubit_count)
-    for gate in gates:
-        assert isinstance(gate, Gate)
-        result = gate.to_matrix() @ result
-    return result
 
 
 def matrix_to_qsharp(A):

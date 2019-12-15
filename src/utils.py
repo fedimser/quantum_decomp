@@ -18,3 +18,10 @@ def is_special_unitary(A):
 
 def is_power_of_two(x):
     return 2**int(math.log2(x)) == x
+
+
+def cast_to_real(x):
+    """Converts complex np.array (known to be real) to real dtype."""
+    ans = np.real(x)
+    assert np.allclose(x, ans)
+    return ans
