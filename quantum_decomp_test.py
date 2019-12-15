@@ -3,6 +3,11 @@ import numpy as np
 import quantum_decomp as qd
 from scipy.stats import unitary_group, ortho_group
 
+SWAP = np.array([[1, 0, 0, 0],
+                 [0, 0, 1, 0],
+                 [0, 1, 0, 0],
+                 [0, 0, 0, 1]])
+
 
 class QuantumDecompTestCase(unittest.TestCase):
 
@@ -161,10 +166,6 @@ class QuantumDecompTestCase(unittest.TestCase):
                             [0, 1, 0, 0]])
 
     def test_matrix_to_gates_SWAP(self):
-        SWAP = np.array([[1, 0, 0, 0],
-                         [0, 0, 1, 0],
-                         [0, 1, 0, 0],
-                         [0, 0, 0, 1]])
         gates = qd.matrix_to_gates(SWAP)
         assert np.allclose(SWAP, qd.gates_to_matrix(gates))
 
@@ -189,11 +190,6 @@ class QuantumDecompTestCase(unittest.TestCase):
         assert len(gates) == 0
 
     def test_matrix_to_qsharp_SWAP(self):
-        SWAP = np.array([[1, 0, 0, 0],
-                         [0, 0, 1, 0],
-                         [0, 1, 0, 0],
-                         [0, 0, 0, 1]])
-
         qsharp_code = qd.matrix_to_qsharp(SWAP)
 
         expected = "\n".join([
@@ -271,7 +267,6 @@ class QuantumDecompTestCase(unittest.TestCase):
             U = np.kron(self._random_su(2), self._random_su(2))
             A, B = qd.decompose_4x4_tp(U)
             self.assertAllClose(U, np.kron(A, B))
-
 
 if __name__ == '__main__':
     unittest.main()
