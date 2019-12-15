@@ -114,3 +114,40 @@ def matrix_to_qsharp(A, **kwargs):
     code = '\n'.join(['    ' + gate.to_qsharp_command()
                       for gate in matrix_to_gates(A, **kwargs)])
     return header + code + '\n' + footer
+
+
+def matrix_to_cirq_circuit(A, **kwargs):
+    """Converts unitary matrix to Cirq circuit. """
+    import cirq
+
+    def gate_to_cirq(gate2):
+        if gate2.name == 'X':
+            return cirq.X
+        elif gate2.name == 'Ry':
+            return cirq.Ry(-gate2.arg)
+        elif gate2.name == 'Rz':
+            return cirq.Rz(-gate2.arg)
+        else:
+            raise RuntimeError("Can't implement: %s" % gate2)
+
+    gates = matrix_to_gates(A, **kwargs)
+    qubits_count = int(np.log2(A.shape[0]))
+    cirquit = cirq.Circuit()
+    qubits = cirq.LineQubit.range(qubits_count)
+
+    for gate in gates:
+        if isinstance(gate, GateFC):
+            controls = [qubits[i]
+                        for i in range(qubits_count) if i != gate.qubit_id]
+            target = qubits[gate.qubit_id]
+            arg_gates = controls + [target]
+            cgate = cirq.ControlledGate(
+                gate_to_cirq(
+                    gate.gate2),
+                num_controls=qubits_count - 1)
+            cirquit.append(cgate.on(*arg_gates))
+        elif isinstance(gate, GateSingle):
+            cirquit.append(gate_to_cirq(gate.gate2).on(qubits[gate.qubit_id]))
+        else:
+            raise RuntimeError('Unknown gate type.')
+    return cirquit

@@ -4,7 +4,13 @@ from src.utils import PAULI_X
 
 
 class Gate2:
-    """Represents gate acting on one qubit."""
+    """Represents gate acting on one qubit.
+
+    Definitions:
+    Ry(a) = exp(0.5*i*a*sigma_y)
+    Rz(a) = exp(0.5*i*a*sigma_z)
+    R1(a) = diag(1, exp(i*a))
+    """
 
     def __init__(self, name, arg=None):
         assert name in ['Ry', 'Rz', 'R1', 'X']
