@@ -23,7 +23,7 @@ class Gate2:
             return PAULI_X
 
     def is_identity(self):
-        return np.linalg.norm(self.to_matrix() - np.eye(2)) < 1e-10
+        return np.allclose(self.to_matrix(), np.eye(2))
 
     def __repr__(self):
         if self.arg is not None:

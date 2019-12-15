@@ -4,6 +4,7 @@ from src.decompose_2x2 import unitary2x2_to_gates
 from src.decompose_4x4 import decompose_4x4_optimal
 from src.gate import Gate, GateFC, GateSingle, gates_to_matrix
 from src.gate2 import Gate2
+from src.optimize import optimize_gates
 from src.two_level_unitary import TwoLevelUnitary
 from src.utils import PAULI_X, is_unitary, is_special_unitary, is_power_of_two
 
@@ -78,49 +79,6 @@ def two_level_decompose_gray(A):
     result = two_level_decompose(P @ A @ P.T)
     for matrix in result:
         matrix.apply_permutation(perm)
-    return result
-
-
-def optimize_gates(gates):
-    """Cancels consequent NOT gates. Skips identity gates.
-    After execution all fully controlled gates will have `flip_mask=0`.
-    """
-    qubit_count = gates[0].qubit_count
-    for gate in gates:
-        assert gate.qubit_count == qubit_count
-
-    result = []
-
-    global flip_mask
-    flip_mask = 0
-
-    def dump_flips():
-        global flip_mask
-        for qubit_id in range(qubit_count):
-            if (flip_mask & (2**qubit_id)) != 0:
-                result.append(GateSingle(Gate2('X'), qubit_id, qubit_count))
-        flip_mask = 0
-
-    for gate in gates:
-        if isinstance(gate, GateSingle):
-            if gate.gate2.name == 'X':
-                flip_mask ^= 2**gate.qubit_id
-            elif gate.gate2.is_identity():
-                pass
-            else:
-                dump_flips()
-                result.append(gate)
-        else:
-            assert isinstance(gate, GateFC)
-            if gate.gate2.is_identity():
-                pass
-            else:
-                flip_mask ^= gate.flip_mask
-                dump_flips()
-                result.append(gate.without_flips())
-                flip_mask ^= gate.flip_mask
-    dump_flips()
-
     return result
 
 

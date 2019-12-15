@@ -1,4 +1,4 @@
 sandbox.ipynb
-*.bat
+start_jupyter.bat
 *.pyc
 .ipynb_checkpoints

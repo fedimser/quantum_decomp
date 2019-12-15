@@ -16,6 +16,7 @@ import numpy as np
 from src.gate import GateSingle, GateFC, apply_on_qubit, gates_to_matrix
 from src.gate2 import Gate2
 from src.decompose_2x2 import su_to_gates
+from src.optimize import optimize_gates
 from src.utils import cast_to_real, is_unitary
 
 
@@ -346,6 +347,8 @@ def decompose_4x4_optimal(U):
     if np.abs(gl_phase) > 1e-9:
         result.append(GateSingle(Gate2('Rz', 2 * gl_phase), 0, 2))
         result.append(GateSingle(Gate2('R1', 2 * gl_phase), 0, 2))
+
+    result = optimize_gates(result)
 
     assert _allclose(U, gates_to_matrix(result))
 
