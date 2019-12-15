@@ -4,12 +4,22 @@ import numpy as np
 PAULI_X = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 
 
+def is_orthogonal(Q):
+    n = Q.shape[0]
+    assert Q.shape == (n, n)
+    return is_real(Q) and np.allclose(Q.T @ Q, np.eye(n))
+
+
 def is_unitary(A):
     n = A.shape[0]
     if (A.shape != (n, n)):
         raise ValueError("Matrix is not square.")
     A = np.array(A)
     return np.allclose(np.eye(n), A @ A.conj().T)
+
+
+def is_real(x):
+    return np.allclose(np.real(x), x)
 
 
 def is_special_unitary(A):

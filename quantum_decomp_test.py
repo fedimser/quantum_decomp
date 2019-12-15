@@ -6,6 +6,10 @@ from scipy.stats import unitary_group, ortho_group
 
 class QuantumDecompTestCase(unittest.TestCase):
 
+    def _random_su(self, n):
+        A = unitary_group.rvs(n)
+        return A * np.linalg.det(A)**(-1 / n)
+
     def assertAllClose(self, x, y, tol=1e-9):
         diff = np.abs(x - y)
         if np.max(diff) > tol:
@@ -25,7 +29,7 @@ class QuantumDecompTestCase(unittest.TestCase):
         for matrix in matrices:
             assert qd.is_power_of_two(matrix.index1 ^ matrix.index2)
 
-    def check_decomposition(self, matrix, gates, tol=1e-9):
+    def check_decomp(self, matrix, gates, tol=1e-9):
         """Checks that `gates` is decomposition of `matrix`."""
         self.assertAllClose(matrix, qd.gates_to_matrix(gates), tol=tol)
 
@@ -169,14 +173,14 @@ class QuantumDecompTestCase(unittest.TestCase):
         for matrix_size in [2, 4, 8, 16]:
             for _ in range(10):
                 A = np.array(unitary_group.rvs(matrix_size))
-                self.check_decomposition(A, qd.matrix_to_gates(A))
+                self.check_decomp(A, qd.matrix_to_gates(A))
 
     def test_matrix_to_gates_random_orthogonal(self):
         np.random.seed(100)
         for matrix_size in [2, 4, 8]:
             for _ in range(10):
                 A = np.array(ortho_group.rvs(matrix_size))
-                self.check_decomposition(A, qd.matrix_to_gates(A))
+                self.check_decomp(A, qd.matrix_to_gates(A))
 
     def test_matrix_to_gates_identity(self):
         A = np.eye(16)
@@ -202,25 +206,71 @@ class QuantumDecompTestCase(unittest.TestCase):
             "}", ""])
         self.assertEqual(qsharp_code, expected)
 
-    def test_decompose_4x4_optimal_(self):
+    def test_decompose_4x4_optimal_corner_cases(self):
+        SWAP = np.array([[1, 0, 0, 0],
+                         [0, 0, 1, 0],
+                         [0, 1, 0, 0],
+                         [0, 0, 0, 1]])
+        self.check_decomp(
+            SWAP, qd.decompose_4x4_optimal(SWAP), tol=3e-8)
+
+        CNOT = np.array([[1, 0, 0, 0],
+                         [0, 1, 0, 0],
+                         [0, 0, 0, 1],
+                         [0, 0, 1, 0]])
+        self.check_decomp(
+            CNOT, qd.decompose_4x4_optimal(CNOT))
+
         w = np.exp((2j / 3) * np.pi)
         A = w * np.array([[1, 1, 1, 0],
                           [1, w, w * w, 0],
                           [1, w * w, w, 0],
                           [0, 0, 0, np.sqrt(3)]]) / np.sqrt(3)
-        self.check_decomposition(A, qd.decompose_4x4_optimal(A), tol=3e-8)
+        self.check_decomp(A, qd.decompose_4x4_optimal(A), tol=3e-8)
+
+        QFT_2 = 0.5 * np.array([[1, 1, 1, 1],
+                                [1, 1j, -1, -1j],
+                                [1, -1, 1, -1],
+                                [1, -1j, -1, 1j]])
+        self.check_decomp(QFT_2, qd.decompose_4x4_optimal(QFT_2))
+
+        Phi = np.sqrt(0.5) * np.array([[1, -1j, 0, 0],
+                                       [0, 0, -1j, 1],
+                                       [0, 0, -1j, -1],
+                                       [1, 1j, 0, 0]])
+        self.check_decomp(Phi, qd.decompose_4x4_optimal(Phi))
+
+    def test_decompose_4x4_optimal_tensor_products(self):
+        Id = np.array([[1, 0], [0, 1]])
+        X = np.array([[0, 1], [1, 0]])
+        Y = np.array([[0, -1j], [1j, 0]])
+        Z = np.array([[1, 0], [0, -1]])
+        H = np.array([[1, 1], [1, -1]]) / np.sqrt(2)
+        ops = [Id, X, Y, Z, H]
+
+        for m1 in ops:
+            for m2 in ops:
+                A = np.kron(m1, m2)
+                self.check_decomp(A, qd.decompose_4x4_optimal(A))
 
     def test_decompose_4x4_optimal_random_unitary(self):
         np.random.seed(100)
         for _ in range(10):
             A = unitary_group.rvs(4)
-            self.check_decomposition(A, qd.decompose_4x4_optimal(A))
+            self.check_decomp(A, qd.decompose_4x4_optimal(A))
 
     def test_decompose_4x4_optimal_random_orthogonal(self):
         np.random.seed(100)
         for _ in range(10):
             A = ortho_group.rvs(4)
-            self.check_decomposition(A, qd.decompose_4x4_optimal(A))
+            self.check_decomp(A, qd.decompose_4x4_optimal(A))
+
+    def test_decompose_4x4_tp(self):
+        np.random.seed(100)
+        for _ in range(10):
+            U = np.kron(self._random_su(2), self._random_su(2))
+            A, B = qd.decompose_4x4_tp(U)
+            self.assertAllClose(U, np.kron(A, B))
 
 
 if __name__ == '__main__':

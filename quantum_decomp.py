@@ -1,7 +1,7 @@
 import numpy as np
 
 from src.decompose_2x2 import unitary2x2_to_gates
-from src.decompose_4x4 import decompose_4x4_optimal
+from src.decompose_4x4 import decompose_4x4_optimal, decompose_4x4_tp
 from src.gate import Gate, GateFC, GateSingle, gates_to_matrix
 from src.gate2 import Gate2
 from src.optimize import optimize_gates
