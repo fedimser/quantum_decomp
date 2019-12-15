@@ -16,7 +16,7 @@ class QuantumDecompTestCase(unittest.TestCase):
 
     def check_acting_on_same_bit(self, matrices):
         for matrix in matrices:
-            qd.check_power_of_two(matrix.index1 ^ matrix.index2)
+            assert qd.is_power_of_two(matrix.index1 ^ matrix.index2)
 
     def check_decompose(self, matrix):
         matrix = np.array(matrix)

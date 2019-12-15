@@ -4,7 +4,7 @@ from src.decompose_2x2 import unitary2x2_to_gates
 from src.gate import Gate, GateFC, GateSingle
 from src.gate2 import Gate2
 from src.two_level_unitary import TwoLevelUnitary
-from src.utils import PAULI_X, check_unitary, check_special_unitary, check_power_of_two
+from src.utils import PAULI_X, is_unitary, is_special_unitary, is_power_of_two
 
 
 def two_level_decompose(A):
@@ -26,12 +26,12 @@ def two_level_decompose(A):
                             np.sin(theta) * np.exp(1j * mu)],
                            [-np.sin(theta) * np.exp(-1j * mu),
                             np.cos(theta) * np.exp(-1j * lmbda)]])
-        check_special_unitary(result)
+        assert is_special_unitary(result)
         assert np.allclose(np.angle(result[0, 0] * a + result[1, 0] * b), 0)
         assert (np.abs(result[0, 1] * a + result[1, 1] * b) < 1e-9)
         return result
 
-    check_unitary(A)
+    assert is_unitary(A)
     n = A.shape[0]
     result = []
     # Make a copy, because we are going to mutate it.
@@ -64,9 +64,9 @@ def two_level_decompose_gray(A):
     Guarantees that each matrix acts on single bit.
     """
     N = A.shape[0]
-    check_power_of_two(N)
+    assert is_power_of_two(N)
     assert A.shape == (N, N), "Matrix must be square."
-    check_unitary(A)
+    assert is_unitary(A)
 
     # Build permutation matrix.
     perm = [x ^ (x // 2) for x in range(N)]  # Gray code.

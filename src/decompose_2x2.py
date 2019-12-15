@@ -1,14 +1,14 @@
 import numpy as np
 
 from src.gate2 import Gate2
-from src.utils import PAULI_X, check_unitary, check_special_unitary
+from src.utils import PAULI_X, is_unitary, is_special_unitary
 
 def su_to_gates(A):
     """Decomposes 2x2 special unitary to gates Ry, Rz.
 
     R_k(x) = exp(0.5*i*x*sigma_k).
     """
-    check_special_unitary(A)
+    assert is_special_unitary(A)
     u00 = A[0, 0]
     u01 = A[0, 1]
     theta = np.arccos(np.abs(u00))
@@ -27,7 +27,7 @@ def unitary2x2_to_gates(A):
 
     R1(x) = diag(1, exp(i*x)).
     """
-    check_unitary(A)
+    assert is_unitary(A)
     phi = np.angle(np.linalg.det(A))
     if np.abs(phi) < 1e-9:
         return su_to_gates(A)

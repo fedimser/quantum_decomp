@@ -2,7 +2,7 @@ import math
 import numpy as np
 
 from src.decompose_2x2 import unitary2x2_to_gates
-from src.utils import PAULI_X, check_unitary, check_power_of_two
+from src.utils import PAULI_X, is_unitary, is_power_of_two
 
 class TwoLevelUnitary:
     """Represents two-level unitary matrix.
@@ -15,7 +15,7 @@ class TwoLevelUnitary:
         assert index1 != index2
         assert index1 < matrix_size and index2 < matrix_size
         assert matrix2x2.shape == (2, 2)
-        check_unitary(matrix2x2)
+        assert is_unitary(matrix2x2)
 
         self.matrix_size = matrix_size
         self.index1 = index1
@@ -63,7 +63,7 @@ class TwoLevelUnitary:
         
         self.order_indices()
         qubit_id_mask = self.index1 ^ self.index2
-        check_power_of_two(qubit_id_mask)
+        assert is_power_of_two(qubit_id_mask)
         assert self.index1 < self.index2
 
         qubit_id = int(math.log2(qubit_id_mask))
