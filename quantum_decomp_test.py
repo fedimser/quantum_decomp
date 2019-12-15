@@ -199,9 +199,9 @@ class QuantumDecompTestCase(unittest.TestCase):
         expected = "\n".join([
             "operation ApplyUnitaryMatrix (qs : Qubit[]) : Unit {",
             "body (...) {",
-            "    Controlled X([qs[1]], (qs[0]));",
-            "    Controlled X([qs[0]], (qs[1]));",
-            "    Controlled X([qs[1]], (qs[0]));",
+            "    CNOT(qs[1], qs[0]);",
+            "    CNOT(qs[0], qs[1]);",
+            "    CNOT(qs[1], qs[0]);",
             "  }",
             "}", ""])
         self.assertEqual(qsharp_code, expected)

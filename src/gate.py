@@ -82,8 +82,8 @@ class GateFC(Gate):
         if self.flip_mask != 0:
             raise ValueError("flip_mask must be zero.")
 
-        controls = [i for i in range(self.qubit_count) if i != self.qubit_id]
-        controls = '[' + ', '.join(['qs[%d]' % i for i in controls]) + ']'
+        control_ids = [i for i in range(self.qubit_count) if i != self.qubit_id]
+        controls = '[' + ', '.join(['qs[%d]' % i for i in control_ids]) + ']'
         if self.gate2.name in ('Rx', 'Ry', 'Rz'):
             # QSharp uses different sign.
             return 'Controlled %s(%s, (%.15f, qs[%d]));' % (
@@ -92,6 +92,8 @@ class GateFC(Gate):
             return 'Controlled R1(%s, (%.15f, qs[%d]));' % (
                 controls, self.gate2.arg, self.qubit_id)
         elif self.gate2.name == 'X':
+            if self.qubit_count == 2:
+                return 'CNOT(qs[%d], qs[%d]);' % (control_ids[0], self.qubit_id)
             return 'Controlled X(%s, (qs[%d]));' % (controls, self.qubit_id)
 
     def to_matrix(self):

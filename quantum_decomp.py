@@ -82,20 +82,26 @@ def two_level_decompose_gray(A):
     return result
 
 
-def matrix_to_gates(A):
+def matrix_to_gates(A, **kwargs):
     """Given unitary matrix A, retuns sequence of gates which implements
     action of this matrix on register of qubits.
 
     Input: A - 2^n x 2^N unitary matrix.
-    Returns: sequence of Gate objects.
+    Returns: sequence of `Gate`s.
+
+    If optimized=True, applies optimized algorithm yielding less gates. Will
+    affect output only when A is 4x4 matrix.
     """
+    if 'optimize' in kwargs and kwargs['optimize'] and A.shape[0] == 4:
+        return decompose_4x4_optimal(A)
+
     matrices = two_level_decompose_gray(A)
     gates = sum([matrix.to_fc_gates() for matrix in matrices], [])
     gates = optimize_gates(gates)
     return gates
 
 
-def matrix_to_qsharp(A):
+def matrix_to_qsharp(A, **kwargs):
     """Given unitary matrix A, retuns Q# code which implements
     action of this matrix on register of qubits called `qs`.
 
@@ -106,5 +112,5 @@ def matrix_to_qsharp(A):
               "body (...) {\n")
     footer = "  }\n}\n"
     code = '\n'.join(['    ' + gate.to_qsharp_command()
-                      for gate in matrix_to_gates(A)])
+                      for gate in matrix_to_gates(A, **kwargs)])
     return header + code + '\n' + footer
