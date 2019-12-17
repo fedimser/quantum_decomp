@@ -1,13 +1,22 @@
 import unittest
 import numpy as np
+import warnings
 import quantum_decomp as qd
+
 from scipy.stats import unitary_group, ortho_group
 
 SWAP = np.array([[1, 0, 0, 0],
                  [0, 0, 1, 0],
                  [0, 1, 0, 0],
                  [0, 0, 0, 1]])
-
+CNOT = np.array([[1, 0, 0, 0],
+                 [0, 1, 0, 0],
+                 [0, 0, 0, 1],
+                 [0, 0, 1, 0]])
+QFT_2 = 0.5 * np.array([[1, 1, 1, 1],
+                        [1, 1j, -1, -1j],
+                        [1, -1, 1, -1],
+                        [1, -1j, -1, 1j]])
 
 class QuantumDecompTestCase(unittest.TestCase):
 
@@ -203,19 +212,9 @@ class QuantumDecompTestCase(unittest.TestCase):
         self.assertEqual(qsharp_code, expected)
 
     def test_decompose_4x4_optimal_corner_cases(self):
-        SWAP = np.array([[1, 0, 0, 0],
-                         [0, 0, 1, 0],
-                         [0, 1, 0, 0],
-                         [0, 0, 0, 1]])
-        self.check_decomp(
-            SWAP, qd.decompose_4x4_optimal(SWAP), tol=3e-8)
-
-        CNOT = np.array([[1, 0, 0, 0],
-                         [0, 1, 0, 0],
-                         [0, 0, 0, 1],
-                         [0, 0, 1, 0]])
-        self.check_decomp(
-            CNOT, qd.decompose_4x4_optimal(CNOT))
+        self.check_decomp(SWAP, qd.decompose_4x4_optimal(SWAP))
+        self.check_decomp(CNOT, qd.decompose_4x4_optimal(CNOT))
+        self.check_decomp(QFT_2, qd.decompose_4x4_optimal(QFT_2))
 
         w = np.exp((2j / 3) * np.pi)
         A = w * np.array([[1, 1, 1, 0],
@@ -223,12 +222,6 @@ class QuantumDecompTestCase(unittest.TestCase):
                           [1, w * w, w, 0],
                           [0, 0, 0, np.sqrt(3)]]) / np.sqrt(3)
         self.check_decomp(A, qd.decompose_4x4_optimal(A), tol=3e-8)
-
-        QFT_2 = 0.5 * np.array([[1, 1, 1, 1],
-                                [1, 1j, -1, -1j],
-                                [1, -1, 1, -1],
-                                [1, -1j, -1, 1j]])
-        self.check_decomp(QFT_2, qd.decompose_4x4_optimal(QFT_2))
 
         Phi = np.sqrt(0.5) * np.array([[1, -1j, 0, 0],
                                        [0, 0, -1j, 1],
@@ -267,6 +260,23 @@ class QuantumDecompTestCase(unittest.TestCase):
             U = np.kron(self._random_su(2), self._random_su(2))
             A, B = qd.decompose_4x4_tp(U)
             self.assertAllClose(U, np.kron(A, B))
+            
+    def test_matrix_to_cirq_circuit(self):
+        
+        def _check(A):
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                self.assertAllClose(A, qd.matrix_to_cirq_circuit(A).unitary())
+
+        _check(SWAP)
+        _check(CNOT)
+        _check(QFT_2)
+            
+        np.random.seed(100)
+        for matrix_size in [2, 4, 8]:     
+            for _ in range(10):
+                _check(ortho_group.rvs(matrix_size))
+                _check(unitary_group.rvs(matrix_size))
 
 if __name__ == '__main__':
     unittest.main()

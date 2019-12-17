@@ -127,13 +127,15 @@ def matrix_to_cirq_circuit(A, **kwargs):
             return cirq.Ry(-gate2.arg)
         elif gate2.name == 'Rz':
             return cirq.Rz(-gate2.arg)
+        elif gate2.name == 'R1':
+            return cirq.ZPowGate(exponent=gate2.arg / np.pi)
         else:
             raise RuntimeError("Can't implement: %s" % gate2)
 
     gates = matrix_to_gates(A, **kwargs)
     qubits_count = int(np.log2(A.shape[0]))
     cirquit = cirq.Circuit()
-    qubits = cirq.LineQubit.range(qubits_count)
+    qubits = cirq.LineQubit.range(qubits_count)[::-1]
 
     for gate in gates:
         if isinstance(gate, GateFC):
@@ -142,8 +144,7 @@ def matrix_to_cirq_circuit(A, **kwargs):
             target = qubits[gate.qubit_id]
             arg_gates = controls + [target]
             cgate = cirq.ControlledGate(
-                gate_to_cirq(
-                    gate.gate2),
+                gate_to_cirq(gate.gate2),
                 num_controls=qubits_count - 1)
             cirquit.append(cgate.on(*arg_gates))
         elif isinstance(gate, GateSingle):
