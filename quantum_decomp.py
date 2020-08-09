@@ -124,9 +124,9 @@ def matrix_to_cirq_circuit(A, **kwargs):
         if gate2.name == 'X':
             return cirq.X
         elif gate2.name == 'Ry':
-            return cirq.Ry(-gate2.arg)
+            return cirq.ry(-gate2.arg)
         elif gate2.name == 'Rz':
-            return cirq.Rz(-gate2.arg)
+            return cirq.rz(-gate2.arg)
         elif gate2.name == 'R1':
             return cirq.ZPowGate(exponent=gate2.arg / np.pi)
         else:
