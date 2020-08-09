@@ -20,7 +20,6 @@ from src.linalg import orthonormal_eigensystem
 from src.optimize import optimize_gates
 from src.utils import cast_to_real, is_real, is_special_unitary, is_unitary
 
-
 # "Magic basis". Columns are Phi vectors defined in [2].
 # Last two columns replaced to make formula A2 true.
 # Columns of Phi form maximally entangled basis.
@@ -75,7 +74,7 @@ def is_maximally_entangled_state(x):
     A maximally entangled state is a quantum state which has maximum von
     Neumann entropy for each bipartition.
     """
-    assert x.shape == (4, )
+    assert x.shape == (4,)
     assert np.allclose(np.dot(x, x.conj()), 1)
     rho = np.outer(x.conj(), x)
     rho_a = trace_B(rho)
@@ -119,27 +118,36 @@ def decompose_product_state(state):
     assert state.shape == (4,)
     assert np.allclose(np.linalg.norm(state), 1)
 
-    def normalize(x, y, alt_x, alt_y):
-        norm = np.sqrt(x**2 + y**2)
-        if norm < 1e-9:
-            norm = np.sqrt(alt_x**2 + alt_y**2)
-            assert(norm > 1e-9)
-            return alt_x / norm, alt_y / norm
-        else:
-            return x / norm, y / norm
-
     # c = [a1*b1, a1*b2, a2*b1, a2*b2]
     c = np.abs(state)
     phase = np.angle(state)
-    a1, a2 = normalize(c[0], c[2], c[1], c[3])
-    b1, b2 = normalize(c[0], c[1], c[2], c[3])
 
-    a2_phase = (phase[2] - phase[0])
-    if np.abs(c[0]) + np.abs(c[2]) < 1e-9:
-        a2_phase = (phase[3] - phase[1])
+    def normalize(x, y):
+        ans = np.array([x, y], dtype=np.complex128)
+        return ans / np.linalg.norm(ans)
 
-    a = np.array([a1, a2 * np.exp(1j * a2_phase)])
-    b = np.array([b1 * np.exp(1j * phase[0]), b2 * np.exp(1j * phase[1])])
+    # Special cases - when one of state is unit vector.
+    eps = 1e-8
+    if c[0] < eps and c[1] < eps:
+        a = np.array([0, 1], dtype=np.complex128)
+        b = normalize(state[2], state[3])
+    elif c[2] < eps and c[3] < eps:
+        a = np.array([1, 0], dtype=np.complex128)
+        b = normalize(state[0], state[1])
+    elif c[0] < eps and c[2] < eps:
+        a = normalize(state[1], state[3])
+        b = np.array([0, 1], dtype=np.complex128)
+    elif c[1] < eps and c[3] < eps:
+        a = normalize(state[0], state[2])
+        b = np.array([1, 0], dtype=np.complex128)
+    else:
+        a = normalize(c[0], c[2])
+        b = normalize(c[0], c[1])
+        a2_phase = (phase[2] - phase[0])
+        if np.abs(c[0]) + np.abs(c[2]) < 1e-9:
+            a2_phase = (phase[3] - phase[1])
+        a = np.array([a[0], a[1] * np.exp(1j * a2_phase)])
+        b = np.array([b[0] * np.exp(1j * phase[0]), b[1] * np.exp(1j * phase[1])])
 
     assert np.allclose(np.kron(a, b), state)
     return a, b

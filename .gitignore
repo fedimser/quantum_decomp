@@ -2,5 +2,6 @@ sandbox.ipynb
 start_jupyter.bat
 *.pyc
 .ipynb_checkpoints
+.pytest_cache
 .idea
 temp.ipynb

@@ -5,6 +5,8 @@ import quantum_decomp as qd
 
 from scipy.stats import unitary_group, ortho_group
 
+from src.decompose_4x4 import decompose_product_state
+
 SWAP = np.array([[1, 0, 0, 0],
                  [0, 0, 1, 0],
                  [0, 1, 0, 0],
@@ -18,11 +20,12 @@ QFT_2 = 0.5 * np.array([[1, 1, 1, 1],
                         [1, -1, 1, -1],
                         [1, -1j, -1, 1j]])
 
+
 class QuantumDecompTestCase(unittest.TestCase):
 
     def _random_su(self, n):
         A = unitary_group.rvs(n)
-        return A * np.linalg.det(A)**(-1 / n)
+        return A * np.linalg.det(A) ** (-1 / n)
 
     def assertAllClose(self, x, y, tol=1e-9):
         diff = np.abs(x - y)
@@ -240,7 +243,7 @@ class QuantumDecompTestCase(unittest.TestCase):
         for m1 in ops:
             for m2 in ops:
                 A = np.kron(m1, m2)
-                self.check_decomp(A, qd.decompose_4x4_optimal(A))
+                self.check_decomp(A, qd.decompose_4x4_optimal(A), tol=2e-9)
 
     def test_decompose_4x4_optimal_random_unitary(self):
         np.random.seed(100)
@@ -260,9 +263,9 @@ class QuantumDecompTestCase(unittest.TestCase):
             U = np.kron(self._random_su(2), self._random_su(2))
             A, B = qd.decompose_4x4_tp(U)
             self.assertAllClose(U, np.kron(A, B))
-            
+
     def test_matrix_to_cirq_circuit(self):
-        
+
         def _check(A):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
@@ -271,12 +274,21 @@ class QuantumDecompTestCase(unittest.TestCase):
         _check(SWAP)
         _check(CNOT)
         _check(QFT_2)
-            
+
         np.random.seed(100)
-        for matrix_size in [2, 4, 8]:     
+        for matrix_size in [2, 4, 8]:
             for _ in range(10):
                 _check(ortho_group.rvs(matrix_size))
                 _check(unitary_group.rvs(matrix_size))
+
+    def test_decompose_product_state(self):
+        def _check(state):
+            a, b = decompose_product_state(np.array(state))
+            assert np.allclose(np.kron(a, b), state)
+
+        _check([0, -3e-49j, -np.sqrt(0.5), -np.sqrt(0.5)])
+        _check([-6.29490599e-09 - 7.85046229e-17j, 0, 0, -1e-09 + 1.00000000e+00j])
+
 
 if __name__ == '__main__':
     unittest.main()
