@@ -17,6 +17,7 @@ integration.
 
 import re
 
+import os
 import numpy as np
 import qsharp
 from scipy.stats import unitary_group, ortho_group
@@ -28,21 +29,22 @@ open Microsoft.Quantum.Canon;
 open Microsoft.Quantum.Extensions.Convert;
 open Microsoft.Quantum.Extensions.Math;
 open Microsoft.Quantum.Diagnostics;
-operation ApplyOp(bits : Bool[]) : Unit {
+operation ApplyOp(bits : Bool[], dump_file : String) : Unit {
   let N = Length(bits);
   using (qs = Qubit[N]) {
     ApplyPauliFromBitString(PauliX, true, bits, qs);
     Op(qs);
-    DumpMachine("dump_machine.txt");
+    DumpMachine(dump_file);
     ResetAll(qs);
   }
 }
 """
+DUMP_FILE = 'dump_machine.txt'
 
 
 def read_machine_state():
     """Reads machine state dumped from Q# program (as state vector)."""
-    with open('dump_machine.txt') as f:
+    with open(DUMP_FILE) as f:
         lines = f.read().split('\n')[1:-1]
     result = []
     for line in lines:
@@ -60,8 +62,8 @@ def dump_qsharp_unitary(op_code, qubits_count):
     """Returns unitary matrix which is implemented by Q# operation.
 
     It applies given operation on every possible state vector (using Q#
-    simulator) and retrieves state in which operation moves those vectors. These
-    states are columns of unitary matrix implemented by the operation.
+    simulator) and retrieves state in which operation moves those vectors.
+    These states are columns of unitary matrix implemented by the operation.
 
     args:
         op_code - Q# code for operation, which must be called "Op".
@@ -73,8 +75,9 @@ def dump_qsharp_unitary(op_code, qubits_count):
     result = []
     for basis_vector in range(2 ** qubits_count):
         bits = [(basis_vector >> i) % 2 == 1 for i in range(qubits_count)]
-        dump_op.simulate(bits=bits)
+        dump_op.simulate(bits=bits, dump_file=DUMP_FILE)
         result.append(read_machine_state())
+    os.remove(DUMP_FILE)
     return np.array(result).T
 
 
