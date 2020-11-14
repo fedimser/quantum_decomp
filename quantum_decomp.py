@@ -108,10 +108,12 @@ def matrix_to_qsharp(A, **kwargs):
     Input: A - 2^N x 2^N unitary matrix.
     Returns: string - Q# code.
     """
-    header = ("operation ApplyUnitaryMatrix (qs : Qubit[]) : Unit {\n"
-              "body (...) {\n")
-    footer = "  }\n}\n"
-    code = '\n'.join(['    ' + gate.to_qsharp_command()
+    op_name = 'ApplyUnitaryMatrix'
+    if 'op_name' in kwargs:
+        op_name = kwargs['op_name']
+    header = ('operation %s (qs : Qubit[]) : Unit {\n' % op_name)
+    footer = '}\n'
+    code = '\n'.join(['  ' + gate.to_qsharp_command()
                       for gate in matrix_to_gates(A, **kwargs)])
     return header + code + '\n' + footer
 
