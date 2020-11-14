@@ -287,7 +287,8 @@ class QuantumDecompTestCase(unittest.TestCase):
             assert np.allclose(np.kron(a, b), state)
 
         _check([0, -3e-49j, -np.sqrt(0.5), -np.sqrt(0.5)])
-        _check([-6.29490599e-09 - 7.85046229e-17j, 0, 0, -1e-09 + 1.00000000e+00j])
+        _check([-6.29490599e-09 - 7.85046229e-17j,
+                0, 0, -1e-09 + 1.00000000e+00j])
 
 
 if __name__ == '__main__':

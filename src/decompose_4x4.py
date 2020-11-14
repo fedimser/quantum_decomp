@@ -147,7 +147,8 @@ def decompose_product_state(state):
         if np.abs(c[0]) + np.abs(c[2]) < 1e-9:
             a2_phase = (phase[3] - phase[1])
         a = np.array([a[0], a[1] * np.exp(1j * a2_phase)])
-        b = np.array([b[0] * np.exp(1j * phase[0]), b[1] * np.exp(1j * phase[1])])
+        b = np.array([b[0] * np.exp(1j * phase[0]),
+                      b[1] * np.exp(1j * phase[1])])
 
     assert np.allclose(np.kron(a, b), state)
     return a, b
