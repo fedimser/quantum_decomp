@@ -15,6 +15,7 @@ def two_level_decompose(A):
     Matrices are listed in application order, i.e. if aswer is [u_1, u_2, u_3],
     it means A = u_3 u_2 u_1.
     """
+
     def make_eliminating_matrix(a, b):
         """Returns unitary matrix U, s.t. [a, b] U = [c, 0].
 
@@ -101,11 +102,14 @@ def matrix_to_gates(A, **kwargs):
     return gates
 
 
-def matrix_to_qsharp(A, **kwargs):
+def matrix_to_qsharp(matrix, **kwargs):
     """Given unitary matrix A, retuns Q# code which implements
     action of this matrix on register of qubits called `qs`.
 
-    Input: A - 2^N x 2^N unitary matrix.
+    Args:
+        matrix - 2^N x 2^N unitary matrix to convert to Q# code.
+        op_name - name which operation should have. Default name is
+          "ApplyUnitaryMatrix".
     Returns: string - Q# code.
     """
     op_name = 'ApplyUnitaryMatrix'
@@ -114,7 +118,7 @@ def matrix_to_qsharp(A, **kwargs):
     header = ('operation %s (qs : Qubit[]) : Unit {\n' % op_name)
     footer = '}\n'
     code = '\n'.join(['  ' + gate.to_qsharp_command()
-                      for gate in matrix_to_gates(A, **kwargs)])
+                      for gate in matrix_to_gates(matrix, **kwargs)])
     return header + code + '\n' + footer
 
 
