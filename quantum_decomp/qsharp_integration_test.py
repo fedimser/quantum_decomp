@@ -27,6 +27,7 @@ import qsharp
 from scipy.stats import unitary_group, ortho_group
 
 import quantum_decomp as qd
+from quantum_decomp.src.test_utils import QFT_2, SWAP, CNOT
 
 DUMP_CODE = """
 open Microsoft.Quantum.Canon;
@@ -96,8 +97,13 @@ def test_qsharp_integration_2x2():
     check_on_matrix(unitary_group.rvs(2))
     check_on_matrix(unitary_group.rvs(2))
 
+
 def test_qsharp_integration_4x4():
+    check_on_matrix(SWAP)
+    check_on_matrix(CNOT)
+    check_on_matrix(QFT_2)
     check_on_matrix(unitary_group.rvs(4))
+
 
 def test_qsharp_integration_8x8():
     check_on_matrix(unitary_group.rvs(4))

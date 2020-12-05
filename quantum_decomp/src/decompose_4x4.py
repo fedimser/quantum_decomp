@@ -13,12 +13,14 @@ Referecnes:
 
 import numpy as np
 
-from quantum_decomp.src.gate import GateSingle, GateFC, apply_on_qubit, gates_to_matrix
+from quantum_decomp.src.gate import (GateSingle, GateFC, apply_on_qubit,
+                                     gates_to_matrix)
 from quantum_decomp.src.gate2 import Gate2
 from quantum_decomp.src.decompose_2x2 import su_to_gates
 from quantum_decomp.src.linalg import orthonormal_eigensystem
 from quantum_decomp.src.optimize import optimize_gates
-from quantum_decomp.src.utils import cast_to_real, is_real, is_special_unitary, is_unitary
+from quantum_decomp.src.utils import (
+    cast_to_real, is_real, is_special_unitary, is_unitary)
 
 # "Magic basis". Columns are Phi vectors defined in [2].
 # Last two columns replaced to make formula A2 true.
@@ -155,7 +157,7 @@ def decompose_product_state(state):
 
 
 def decompose_4x4_tp(U):
-    """Decomposes 4x4 special unitary which is tesnor product.
+    """Decomposes 4x4 special unitary which is tensor product.
 
     Given special unitary matrix which is tensor product of two special unitary
     matrices, returns these matrices.
