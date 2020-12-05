@@ -4,5 +4,8 @@ start_jupyter.bat
 .ipynb_checkpoints
 .pytest_cache
 .idea
+build
+dist
 obj
 temp.ipynb
+*.egg-info

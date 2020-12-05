@@ -1,5 +1,5 @@
-from src.gate import GateSingle, GateFC
-from src.gate2 import Gate2
+from quantum_decomp.src.gate import GateSingle, GateFC
+from quantum_decomp.src.gate2 import Gate2
 
 
 def rearrange_for_merge(gates):

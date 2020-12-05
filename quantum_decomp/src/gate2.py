@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.utils import PAULI_X
+from quantum_decomp.src.utils import PAULI_X
 
 
 class Gate2:
