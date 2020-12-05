@@ -24,3 +24,5 @@ use this tool.
 
 * See this [paper](res/Fedoriaka2019Decomposition.pdf) for detailed description 
 of the algorithm and further references to papers with algorithms.
+  
+* [Blog post](https://codeforces.com/blog/entry/84655) about the tool. 
