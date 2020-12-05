@@ -1,5 +1,7 @@
 # Tool for decomposing unitary matrix into quantum gates
 
+[![PyPI version](https://badge.fury.io/py/quantum-decomp.svg)](https://badge.fury.io/py/quantum-decomp)
+
 This is a Python tool which takes a unitary matrix and returns
 a quantum circuit implementing it as Q# code or Cirq circuit.
 
