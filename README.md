@@ -1,6 +1,7 @@
 # Tool for decomposing unitary matrix into quantum gates
 
-This is a Python tool which takes as input unitary matrix and returns Q# code implementing it. 
+This is a Python tool which takes a unitary matrix and returns
+a quantum circuit implementing it as Q# code or Cirq circuit.
 
 ### Example
 
@@ -13,6 +14,10 @@ operation Swap (qs : Qubit[]) : Unit {
   CNOT(qs[0], qs[1]);
   CNOT(qs[1], qs[0]);
 }
+>>> print(qd.matrix_to_cirq_circuit(SWAP))
+0: ───@───X───@───
+      │   │   │
+1: ───X───@───X───
 ```
 
 See [example.ipynb](/example.ipynb) for more examples and instructions how to 
