@@ -1,11 +1,10 @@
 import numpy as np
 
-from quantum_decomp.src.decompose_4x4 import decompose_4x4_optimal
-from quantum_decomp.src.gate import GateFC, GateSingle
-from quantum_decomp.src.optimize import optimize_gates
-from quantum_decomp.src.two_level_unitary import TwoLevelUnitary
-from quantum_decomp.src.utils import PAULI_X, is_unitary, is_special_unitary, \
-    is_power_of_two
+from .src.decompose_4x4 import decompose_4x4_optimal
+from .src.gate import GateFC, GateSingle
+from .src.optimize import optimize_gates
+from .src.two_level_unitary import TwoLevelUnitary
+from .src.utils import PAULI_X, is_unitary, is_special_unitary, is_power_of_two
 
 
 def two_level_decompose(A):
