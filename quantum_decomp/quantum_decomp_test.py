@@ -5,7 +5,7 @@ import quantum_decomp as qd
 
 from scipy.stats import unitary_group, ortho_group
 
-from src.decompose_4x4 import decompose_product_state
+from quantum_decomp.src.decompose_4x4 import decompose_product_state
 
 SWAP = np.array([[1, 0, 0, 0],
                  [0, 0, 1, 0],

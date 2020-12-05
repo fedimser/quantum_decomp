@@ -1,7 +1,6 @@
 import numpy as np
 
-from src.gate2 import Gate2
-from src.two_level_unitary import TwoLevelUnitary
+from quantum_decomp.src.two_level_unitary import TwoLevelUnitary
 
 
 class Gate:

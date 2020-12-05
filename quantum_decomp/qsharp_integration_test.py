@@ -14,6 +14,9 @@ environment. You will also need to install libraries imported by this test
 
 Because this setup is complicated, it's not executed as part of continuous
 integration.
+
+Here we just test just few small random matrices. More thorough tests are in
+quantum_decomp_test.py.
 """
 
 import re
@@ -89,13 +92,19 @@ def check_on_matrix(matrix):
     assert np.allclose(matrix, dump_matrix, atol=1e-6)
 
 
-def test_qsharp_integration():
-    # Check 3 random unitary matrices.
-    # More thorough tests are in quantum_decomp_test.py.
-    for matrix_size in [2, 4, 8]:
-        check_on_matrix(unitary_group.rvs(matrix_size))
+def test_qsharp_integration_2x2():
+    check_on_matrix(unitary_group.rvs(2))
+    check_on_matrix(unitary_group.rvs(2))
+
+def test_qsharp_integration_4x4():
+    check_on_matrix(unitary_group.rvs(4))
+
+def test_qsharp_integration_8x8():
+    check_on_matrix(unitary_group.rvs(4))
 
 
 if __name__ == '__main__':
-    test_qsharp_integration()
+    test_qsharp_integration_2x2()
+    test_qsharp_integration_4x4()
+    test_qsharp_integration_8x8()
     print("OK!")

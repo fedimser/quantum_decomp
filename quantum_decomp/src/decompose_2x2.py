@@ -1,7 +1,7 @@
 import numpy as np
 
-from src.gate2 import Gate2
-from src.utils import PAULI_X, is_unitary, is_special_unitary
+from quantum_decomp.src.gate2 import Gate2
+from quantum_decomp.src.utils import PAULI_X, is_unitary, is_special_unitary
 
 
 def su_to_gates(A):

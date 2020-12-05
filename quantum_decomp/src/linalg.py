@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.utils import is_orthogonal, is_real
+from quantum_decomp.src.utils import is_orthogonal, is_real
 
 
 def _dot(a, b):
