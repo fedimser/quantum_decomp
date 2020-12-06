@@ -16,7 +16,7 @@ operation Swap (qs : Qubit[]) : Unit {
   CNOT(qs[0], qs[1]);
   CNOT(qs[1], qs[0]);
 }
->>> print(qd.matrix_to_cirq_circuit(SWAP))
+>>> print(quantum_decomp.matrix_to_cirq_circuit(SWAP))
 0: ───@───X───@───
       │   │   │
 1: ───X───@───X───
