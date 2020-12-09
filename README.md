@@ -5,6 +5,12 @@
 This is a Python tool which takes a unitary matrix and returns
 a quantum circuit implementing it as Q# code or Cirq circuit.
 
+### Installing
+
+```
+pip install quantum-decomp
+```
+
 ### Example
 
 ```python
