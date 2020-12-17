@@ -170,6 +170,5 @@ class QuantumDecompTestCase(unittest.TestCase):
                 _check(random_unitary(matrix_size))
 
 
-
 if __name__ == '__main__':
     unittest.main()
