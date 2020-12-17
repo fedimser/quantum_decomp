@@ -127,7 +127,7 @@ def matrix_to_qsharp(matrix, **kwargs):
 def matrix_to_cirq_circuit(A, **kwargs):
     """Converts unitary matrix to Cirq circuit.
 
-    :param A: 2^N x 2^N unitary matrix to convert to Q# code.
+    :param A: 2^N x 2^N unitary matrix.
     :return: `cirq.Circuit` implementing this matrix.
     """
     import cirq
@@ -161,6 +161,49 @@ def matrix_to_cirq_circuit(A, **kwargs):
             circuit.append(cgate.on(*arg_gates))
         elif isinstance(gate, GateSingle):
             circuit.append(gate_to_cirq(gate.gate2).on(qubits[gate.qubit_id]))
+        else:
+            raise RuntimeError('Unknown gate type.')
+    return circuit
+
+
+def matrix_to_qiskit_circuit(A, **kwargs):
+    """Converts unitary matrix to Qiskit circuit.
+
+    :param A: 2^N x 2^N unitary matrix.
+    :return: `qiskit.QuantumCircuit` implementing this matrix.
+    """
+    from qiskit import QuantumCircuit
+    from qiskit.circuit.library import XGate, RYGate, RZGate, U1Gate
+
+    def gate_to_qiskit(gate2):
+        if gate2.name == 'X':
+            return XGate()
+        elif gate2.name == 'Ry':
+            return RYGate(-gate2.arg)
+        elif gate2.name == 'Rz':
+            return RZGate(-gate2.arg)
+        elif gate2.name == 'R1':
+            return U1Gate(gate2.arg)
+        else:
+            raise RuntimeError("Can't implement: %s" % gate2)
+
+    gates = matrix_to_gates(A, **kwargs)
+    qubits_count = int(np.log2(A.shape[0]))
+    circuit = QuantumCircuit(qubits_count)
+    qubits = circuit.qubits
+
+    for gate in gates:
+        if isinstance(gate, GateFC):
+            controls = [qubits[i]
+                        for i in range(qubits_count) if i != gate.qubit_id]
+            target = qubits[gate.qubit_id]
+            arg_gates = controls + [target]
+            cgate = gate_to_qiskit(gate.gate2)
+            if len(controls):
+                cgate = cgate.control(num_ctrl_qubits=len(controls))
+            circuit.append(cgate, arg_gates)
+        elif isinstance(gate, GateSingle):
+            circuit.append(gate_to_qiskit(gate.gate2), [qubits[gate.qubit_id]])
         else:
             raise RuntimeError('Unknown gate type.')
     return circuit
