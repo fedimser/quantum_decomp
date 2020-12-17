@@ -33,6 +33,6 @@ jobs:
       - name: Install requirements
         run: |
           pip install -r requirements.txt
-          pip install cirq pytest>=5.3
+          pip install cirq pytest>=5.3 qiskit
       - name: Run tests
         run: pytest . --ignore=quantum_decomp/qsharp_integration_test.py

@@ -26,6 +26,10 @@ def random_special_unitary(n):
     return A * np.linalg.det(A) ** (-1 / n)
 
 
+def random_orthogonal_matrix(n):
+    return unitary_group.rvs(n)
+
+
 def assert_all_close(x, y, tol=1e-9):
     diff = np.abs(x - y)
     if np.max(diff) > tol:

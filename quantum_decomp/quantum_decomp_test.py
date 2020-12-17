@@ -7,7 +7,7 @@ from scipy.stats import unitary_group, ortho_group
 import quantum_decomp as qd
 from quantum_decomp.src.gate import gates_to_matrix
 from quantum_decomp.src.test_utils import SWAP, check_decomp, QFT_2, CNOT, \
-    assert_all_close
+    assert_all_close, random_orthogonal_matrix, random_unitary
 from quantum_decomp.src.two_level_unitary import TwoLevelUnitary
 from quantum_decomp.src.utils import is_power_of_two
 
@@ -148,8 +148,27 @@ class QuantumDecompTestCase(unittest.TestCase):
         np.random.seed(100)
         for matrix_size in [2, 4, 8]:
             for _ in range(10):
-                _check(ortho_group.rvs(matrix_size))
-                _check(unitary_group.rvs(matrix_size))
+                _check(random_orthogonal_matrix(matrix_size))
+                _check(random_unitary(matrix_size))
+
+    def test_matrix_to_qiskit_circuit(self):
+        import qiskit.quantum_info as qi
+
+        def _check(matrix):
+            circuit = qd.matrix_to_qiskit_circuit(matrix)
+            op = qi.Operator(circuit)
+            assert np.allclose(op.data, matrix)
+
+        _check(SWAP)
+        _check(CNOT)
+        _check(QFT_2)
+
+        np.random.seed(100)
+        for matrix_size in [2, 4, 8]:
+            for _ in range(10):
+                _check(random_orthogonal_matrix(matrix_size))
+                _check(random_unitary(matrix_size))
+
 
 
 if __name__ == '__main__':
