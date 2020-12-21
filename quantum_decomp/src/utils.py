@@ -36,3 +36,7 @@ def cast_to_real(x):
     ans = np.real(x)
     assert np.allclose(x, ans)
     return ans
+
+
+def skip_identities(gates):
+    return [gate for gate in gates if not gate.gate2.is_identity()]

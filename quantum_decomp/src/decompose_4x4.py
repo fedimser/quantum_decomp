@@ -18,9 +18,8 @@ from quantum_decomp.src.gate import (GateSingle, GateFC, apply_on_qubit,
 from quantum_decomp.src.gate2 import Gate2
 from quantum_decomp.src.decompose_2x2 import su_to_gates
 from quantum_decomp.src.linalg import orthonormal_eigensystem
-from quantum_decomp.src.optimize import optimize_gates
 from quantum_decomp.src.utils import (
-    cast_to_real, is_real, is_special_unitary, is_unitary)
+    cast_to_real, is_real, is_special_unitary, is_unitary, skip_identities)
 
 # "Magic basis". Columns are Phi vectors defined in [2].
 # Last two columns replaced to make formula A2 true.
@@ -424,7 +423,7 @@ def decompose_4x4_optimal(U):
         result.append(GateSingle(Gate2('Rz', 2 * gl_phase), 0))
         result.append(GateSingle(Gate2('R1', 2 * gl_phase), 0))
 
-    result = optimize_gates(result)
+    result = skip_identities(result)
 
     assert _allclose(U, gates_to_matrix(result, 2))
 

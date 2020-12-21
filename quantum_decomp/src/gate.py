@@ -25,7 +25,6 @@ class GateSingle(Gate):
         elif self.gate2.name == 'X':
             return 'X(qs[%d]);' % (self.qubit_id)
 
-    # TODO: move to testing.
     def to_matrix(self, qubits_count):
         """Tensor product I x I x ... x `gate2.to_matrix()` x I x ... x I."""
         matrix = self.gate2.to_matrix()
@@ -39,10 +38,8 @@ class GateSingle(Gate):
             subtile = np.eye(tile_size // 2)
             for i in range(2):
                 for j in range(2):
-                    tile[i * ts2:(i + 1) * ts2, j *
-                                                ts2:(j + 1) * ts2] = subtile * \
-                                                                     matrix[
-                                                                         i, j]
+                    tile[i * ts2:(i + 1) * ts2,
+                    j * ts2:(j + 1) * ts2] = subtile * matrix[i, j]
 
         matrix_size = 2 ** qubits_count
         ret = np.zeros((matrix_size, matrix_size), dtype=np.complex128)
@@ -59,7 +56,6 @@ class GateSingle(Gate):
         return self.gate2.name + "-single"
 
 
-# TODO: flip_mask must go away.
 class GateFC(Gate):
     """ Represents fully contolled gate."""
 
@@ -88,7 +84,6 @@ class GateFC(Gate):
                     control_ids[0], self.qubit_id)
             return 'Controlled X(%s, (qs[%d]));' % (controls, self.qubit_id)
 
-    # TODO: move to 'testing'.
     def to_matrix(self, qubits_count):
         matrix_size = 2 ** qubits_count
         index2 = (matrix_size - 1)
@@ -102,13 +97,12 @@ class GateFC(Gate):
 
     def __repr__(self):
         return "%s on bit %d, fully controlled" % (
-        str(self.gate2), self.qubit_id)
+            str(self.gate2), self.qubit_id)
 
     def type(self):
         return self.gate2.name + "-FC"
 
 
-# TODO: move to testing....???
 def gates_to_matrix(gates, qubits_count):
     """Converts gate sequence to matrix implemented by this sequence."""
     result = np.eye(2 ** qubits_count)
@@ -118,7 +112,6 @@ def gates_to_matrix(gates, qubits_count):
     return result
 
 
-# TODO: move to testing.
 def apply_on_qubit(gates, qubit_id):
     """Converts Gate2 gates to GateSingle gates acting on the same qubit."""
     return [GateSingle(gate, qubit_id) for gate in gates]

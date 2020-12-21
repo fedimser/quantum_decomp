@@ -6,7 +6,6 @@ from .src.decompose_2x2 import unitary2x2_to_gates
 from .src.decompose_4x4 import decompose_4x4_optimal
 from .src.gate import GateFC, GateSingle
 from .src.gate2 import Gate2
-from .src.optimize import optimize_gates
 from .src.two_level_unitary import TwoLevelUnitary
 from .src.utils import PAULI_X, is_unitary, is_special_unitary, is_power_of_two, \
     IDENTITY_2x2
@@ -109,8 +108,7 @@ def matrix_to_gates(A, **kwargs):
     affect output only when A is 4x4 matrix.
 
     :param A: 2^N x 2^N unitary matrix.
-    :return: sequence of `Gate`s. Guaranteed to contain only single-qubit X
-      gates and fully-controlled Rx,Ry,R1 gates.
+    :return: sequence of `Gate`s.
     """
     if 'optimize' in kwargs and kwargs['optimize'] and A.shape[0] == 4:
         return decompose_4x4_optimal(A)
@@ -118,15 +116,14 @@ def matrix_to_gates(A, **kwargs):
     matrices = two_level_decompose_gray(A)
 
     gates = []
-    qubit_count = int(math.log2(A.shape[0]))
     prev_flip_mask = 0
     for matrix in matrices:
-        matrix.order_indices()  #TODO: why do we need this?
+        matrix.order_indices() # Ensures that index2 > index1.
         qubit_id_mask = matrix.index1 ^ matrix.index2
         assert is_power_of_two(qubit_id_mask)
         qubit_id = int(math.log2(qubit_id_mask))
 
-        flip_mask = (matrix.matrix_size - 1) - (matrix.index1 | matrix.index2)
+        flip_mask = (matrix.matrix_size - 1) - matrix.index2
 
         add_flips(flip_mask ^ prev_flip_mask, gates)
         for gate2 in unitary2x2_to_gates(matrix.matrix_2x2):
@@ -134,7 +131,6 @@ def matrix_to_gates(A, **kwargs):
         prev_flip_mask = flip_mask
     add_flips(prev_flip_mask, gates)
 
-    #gates = optimize_gates(gates)
     return gates
 
 

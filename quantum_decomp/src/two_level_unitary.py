@@ -57,20 +57,3 @@ class TwoLevelUnitary:
         assert(len(perm) == self.matrix_size)
         self.index1 = perm[self.index1]
         self.index2 = perm[self.index2]
-
-    # TODO: delete this.
-    def to_fc_gates(self):
-        """Returns list of fully controlled gates implementing this matrix."""
-        from quantum_decomp.src.gate import GateFC
-
-        self.order_indices()
-        qubit_id_mask = self.index1 ^ self.index2
-        assert is_power_of_two(qubit_id_mask)
-        assert self.index1 < self.index2
-
-        qubit_id = int(math.log2(qubit_id_mask))
-        flip_mask = (self.matrix_size - 1) - self.index2
-        qubit_count = int(math.log2(self.matrix_size))
-
-        return [GateFC(gate2, qubit_id, qubit_count, flip_mask=flip_mask)
-                for gate2 in unitary2x2_to_gates(self.matrix_2x2)]

@@ -142,9 +142,8 @@ class QuantumDecompTestCase(unittest.TestCase):
 
         np.random.seed(100)
         for matrix_size in [2, 4, 8]:
-            for _ in range(3):
-                _check(random_orthogonal_matrix(matrix_size))
-                _check(random_unitary(matrix_size))
+            _check(random_orthogonal_matrix(matrix_size))
+            _check(random_unitary(matrix_size))
 
     def test_matrix_to_qiskit_circuit(self):
         import qiskit.quantum_info as qi
@@ -160,9 +159,8 @@ class QuantumDecompTestCase(unittest.TestCase):
 
         np.random.seed(100)
         for matrix_size in [2, 4, 8]:
-            for _ in range(3):
-                _check(random_orthogonal_matrix(matrix_size))
-                _check(random_unitary(matrix_size))
+            _check(random_orthogonal_matrix(matrix_size))
+            _check(random_unitary(matrix_size))
 
 
 if __name__ == '__main__':
