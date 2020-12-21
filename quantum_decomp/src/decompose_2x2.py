@@ -17,9 +17,12 @@ def su_to_gates(A):
     mu = np.angle(u01)
 
     result = []
-    result.append(Gate2('Rz', lmbda - mu))
-    result.append(Gate2('Ry', 2 * theta))
-    result.append(Gate2('Rz', lmbda + mu))
+    if np.abs(lmbda - mu) > 1e-9:
+        result.append(Gate2('Rz', lmbda - mu))
+    if np.abs(theta) > 1e-9:
+        result.append(Gate2('Ry', 2 * theta))
+    if np.abs(lmbda + mu) > 1e-9:
+        result.append(Gate2('Rz', lmbda + mu))
     return result
 
 

@@ -1,6 +1,7 @@
 import math
 import numpy as np
 
+IDENTITY_2x2 = np.eye(2, dtype=np.complex128)
 PAULI_X = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 
 
@@ -27,7 +28,7 @@ def is_special_unitary(A):
 
 
 def is_power_of_two(x):
-    return 2**int(math.log2(x)) == x
+    return (x & (x - 1)) == 0 and x != 0
 
 
 def cast_to_real(x):
@@ -35,3 +36,7 @@ def cast_to_real(x):
     ans = np.real(x)
     assert np.allclose(x, ans)
     return ans
+
+
+def skip_identities(gates):
+    return [gate for gate in gates if not gate.gate2.is_identity()]

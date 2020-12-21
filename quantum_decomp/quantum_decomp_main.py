@@ -1,10 +1,14 @@
+import math
+
 import numpy as np
 
+from .src.decompose_2x2 import unitary2x2_to_gates
 from .src.decompose_4x4 import decompose_4x4_optimal
 from .src.gate import GateFC, GateSingle
-from .src.optimize import optimize_gates
+from .src.gate2 import Gate2
 from .src.two_level_unitary import TwoLevelUnitary
-from .src.utils import PAULI_X, is_unitary, is_special_unitary, is_power_of_two
+from .src.utils import PAULI_X, is_unitary, is_special_unitary, \
+    is_power_of_two, IDENTITY_2x2
 
 
 def two_level_decompose(A):
@@ -57,8 +61,9 @@ def two_level_decompose(A):
                 u_2x2.multiply_right(current_A)
                 result.append(u_2x2.inv())
 
-    result.append(TwoLevelUnitary(
-        current_A[n - 2:n, n - 2:n], n, n - 2, n - 1))
+    last_matrix = current_A[n - 2:n, n - 2:n]
+    if not np.allclose(last_matrix, IDENTITY_2x2):
+        result.append(TwoLevelUnitary(last_matrix, n, n - 2, n - 1))
     return result
 
 
@@ -86,8 +91,18 @@ def two_level_decompose_gray(A):
     return result
 
 
+def add_flips(flip_mask, gates):
+    """Adds X gates for all qubits specified by qubit_mask."""
+    qubit_id = 0
+    while (flip_mask > 0):
+        if (flip_mask % 2) == 1:
+            gates.append(GateSingle(Gate2('X'), qubit_id))
+        flip_mask //= 2
+        qubit_id += 1
+
+
 def matrix_to_gates(A, **kwargs):
-    """Given unitary matrix A, retuns sequence of gates which implements
+    """Given unitary matrix A, returns sequence of gates which implements
     action of this matrix on register of qubits.
 
     If optimized=True, applies optimized algorithm yielding less gates. Will
@@ -100,8 +115,23 @@ def matrix_to_gates(A, **kwargs):
         return decompose_4x4_optimal(A)
 
     matrices = two_level_decompose_gray(A)
-    gates = sum([matrix.to_fc_gates() for matrix in matrices], [])
-    gates = optimize_gates(gates)
+
+    gates = []
+    prev_flip_mask = 0
+    for matrix in matrices:
+        matrix.order_indices()  # Ensures that index2 > index1.
+        qubit_id_mask = matrix.index1 ^ matrix.index2
+        assert is_power_of_two(qubit_id_mask)
+        qubit_id = int(math.log2(qubit_id_mask))
+
+        flip_mask = (matrix.matrix_size - 1) - matrix.index2
+
+        add_flips(flip_mask ^ prev_flip_mask, gates)
+        for gate2 in unitary2x2_to_gates(matrix.matrix_2x2):
+            gates.append(GateFC(gate2, qubit_id))
+        prev_flip_mask = flip_mask
+    add_flips(prev_flip_mask, gates)
+
     return gates
 
 
@@ -119,7 +149,8 @@ def matrix_to_qsharp(matrix, **kwargs):
         op_name = kwargs['op_name']
     header = ('operation %s (qs : Qubit[]) : Unit {\n' % op_name)
     footer = '}\n'
-    code = '\n'.join(['  ' + gate.to_qsharp_command()
+    qubits_count = int(np.log2(matrix.shape[0]))
+    code = '\n'.join(['  ' + gate.to_qsharp_command(qubits_count)
                       for gate in matrix_to_gates(matrix, **kwargs)])
     return header + code + '\n' + footer
 

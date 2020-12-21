@@ -18,9 +18,8 @@ from quantum_decomp.src.gate import (GateSingle, GateFC, apply_on_qubit,
 from quantum_decomp.src.gate2 import Gate2
 from quantum_decomp.src.decompose_2x2 import su_to_gates
 from quantum_decomp.src.linalg import orthonormal_eigensystem
-from quantum_decomp.src.optimize import optimize_gates
 from quantum_decomp.src.utils import (
-    cast_to_real, is_real, is_special_unitary, is_unitary)
+    cast_to_real, is_real, is_special_unitary, is_unitary, skip_identities)
 
 # "Magic basis". Columns are Phi vectors defined in [2].
 # Last two columns replaced to make formula A2 true.
@@ -384,17 +383,17 @@ def decompose_magic_N(a):
     t3 = 2 * a[1] - 0.5 * np.pi
     result = []
 
-    result.append(GateSingle(Gate2('Rz', 0.5 * np.pi), 1, 2))
-    result.append(GateFC(Gate2('X'), 0, 2))
-    result.append(GateSingle(Gate2('Rz', t1), 0, 2))
-    result.append(GateSingle(Gate2('Ry', t2), 1, 2))
-    result.append(GateFC(Gate2('X'), 1, 2))
-    result.append(GateSingle(Gate2('Ry', t3), 1, 2))
-    result.append(GateFC(Gate2('X'), 0, 2))
-    result.append(GateSingle(Gate2('Rz', -0.5 * np.pi), 0, 2))
+    result.append(GateSingle(Gate2('Rz', 0.5 * np.pi), 1))
+    result.append(GateFC(Gate2('X'), 0))
+    result.append(GateSingle(Gate2('Rz', t1), 0))
+    result.append(GateSingle(Gate2('Ry', t2), 1))
+    result.append(GateFC(Gate2('X'), 1))
+    result.append(GateSingle(Gate2('Ry', t3), 1))
+    result.append(GateFC(Gate2('X'), 0))
+    result.append(GateSingle(Gate2('Rz', -0.5 * np.pi), 0))
 
     N = magic_N(a)
-    assert np.allclose(N, gates_to_matrix(result) * np.exp(0.25j * np.pi))
+    assert np.allclose(N, gates_to_matrix(result, 2) * np.exp(0.25j * np.pi))
 
     return result
 
@@ -412,20 +411,20 @@ def decompose_4x4_optimal(U):
     magic_decomp = decompose_to_magic_diagonal(U)
 
     result = []
-    result += apply_on_qubit(su_to_gates(magic_decomp['VA']), 1, 2)
-    result += apply_on_qubit(su_to_gates(magic_decomp['VB']), 0, 2)
+    result += apply_on_qubit(su_to_gates(magic_decomp['VA']), 1)
+    result += apply_on_qubit(su_to_gates(magic_decomp['VB']), 0)
     result += decompose_magic_N(magic_decomp['alpha'])
-    result += apply_on_qubit(su_to_gates(magic_decomp['UA']), 1, 2)
-    result += apply_on_qubit(su_to_gates(magic_decomp['UB']), 0, 2)
+    result += apply_on_qubit(su_to_gates(magic_decomp['UA']), 1)
+    result += apply_on_qubit(su_to_gates(magic_decomp['UB']), 0)
 
     # Adding global phase using Rz and R1.
     gl_phase = magic_decomp['global_phase'] + 0.25 * np.pi
     if np.abs(gl_phase) > 1e-9:
-        result.append(GateSingle(Gate2('Rz', 2 * gl_phase), 0, 2))
-        result.append(GateSingle(Gate2('R1', 2 * gl_phase), 0, 2))
+        result.append(GateSingle(Gate2('Rz', 2 * gl_phase), 0))
+        result.append(GateSingle(Gate2('R1', 2 * gl_phase), 0))
 
-    result = optimize_gates(result)
+    result = skip_identities(result)
 
-    assert _allclose(U, gates_to_matrix(result))
+    assert _allclose(U, gates_to_matrix(result, 2))
 
     return result
