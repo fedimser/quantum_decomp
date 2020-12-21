@@ -28,7 +28,7 @@ operation Swap (qs : Qubit[]) : Unit {
       │   │   │
 1: ───X───@───X───
 
->>> print(qd.matrix_to_qiskit_circuit(SWAP))
+>>> print(quantum_decomp.matrix_to_qiskit_circuit(SWAP))
      ┌───┐     ┌───┐
 q_0: ┤ X ├──■──┤ X ├
      └─┬─┘┌─┴─┐└─┬─┘
