@@ -58,6 +58,7 @@ class TwoLevelUnitary:
         self.index1 = perm[self.index1]
         self.index2 = perm[self.index2]
 
+    # TODO: delete this.
     def to_fc_gates(self):
         """Returns list of fully controlled gates implementing this matrix."""
         from quantum_decomp.src.gate import GateFC

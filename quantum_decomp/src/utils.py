@@ -1,6 +1,7 @@
 import math
 import numpy as np
 
+IDENTITY_2x2 = np.eye(2, dtype=np.complex128)
 PAULI_X = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 
 

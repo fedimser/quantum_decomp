@@ -1,7 +1,11 @@
+import math
+
 import numpy as np
 
+from .src.decompose_2x2 import unitary2x2_to_gates
 from .src.decompose_4x4 import decompose_4x4_optimal
 from .src.gate import GateFC, GateSingle
+from .src.gate2 import Gate2
 from .src.optimize import optimize_gates
 from .src.two_level_unitary import TwoLevelUnitary
 from .src.utils import PAULI_X, is_unitary, is_special_unitary, is_power_of_two
@@ -86,22 +90,50 @@ def two_level_decompose_gray(A):
     return result
 
 
+def add_flips(flip_mask, gates, qubit_count):
+    """Adds X gates for all qubits specified by qubit_mask."""
+    # TODO: qubit_count is not needed.
+    qubit_id = 0
+    while (flip_mask > 0):
+        if (flip_mask % 2) == 1:
+            gates.append(GateSingle(Gate2('X'), qubit_id, qubit_count))
+        flip_mask //= 2
+        qubit_id += 1
+
 def matrix_to_gates(A, **kwargs):
-    """Given unitary matrix A, retuns sequence of gates which implements
+    """Given unitary matrix A, returns sequence of gates which implements
     action of this matrix on register of qubits.
 
     If optimized=True, applies optimized algorithm yielding less gates. Will
     affect output only when A is 4x4 matrix.
 
     :param A: 2^N x 2^N unitary matrix.
-    :return: sequence of `Gate`s.
+    :return: sequence of `Gate`s. Guaranteed to contain only single-qubit X
+      gates and fully-controlled Rx,Ry,R1 gates.
     """
     if 'optimize' in kwargs and kwargs['optimize'] and A.shape[0] == 4:
         return decompose_4x4_optimal(A)
 
     matrices = two_level_decompose_gray(A)
-    gates = sum([matrix.to_fc_gates() for matrix in matrices], [])
-    gates = optimize_gates(gates)
+
+    gates = []
+    qubit_count = int(math.log2(A.shape[0]))
+    prev_flip_mask = 0
+    for matrix in matrices:
+        matrix.order_indices()  #TODO: why the f we need this?
+        qubit_id_mask = matrix.index1 ^ matrix.index2
+        assert is_power_of_two(qubit_id_mask)
+        qubit_id = int(math.log2(qubit_id_mask))
+
+        flip_mask = (matrix.matrix_size - 1) - (matrix.index1 | matrix.index2)
+
+        add_flips(flip_mask ^ prev_flip_mask, gates, qubit_count)
+        for gate2 in unitary2x2_to_gates(matrix.matrix_2x2):
+            gates.append(GateFC(gate2, qubit_id, qubit_count, flip_mask=0))
+        prev_flip_mask = flip_mask
+    add_flips(prev_flip_mask, gates, qubit_count)
+
+    #gates = optimize_gates(gates)
     return gates
 
 

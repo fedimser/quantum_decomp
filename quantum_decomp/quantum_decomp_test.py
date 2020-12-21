@@ -81,11 +81,6 @@ class QuantumDecompTestCase(unittest.TestCase):
                 A = np.array(unitary_group.rvs(matrix_size))
                 self.check_correct_product(A, qd.two_level_decompose(A))
 
-    def test_TwoLevelUnitary_to_fc_gates(self):
-        matrix = TwoLevelUnitary(unitary_group.rvs(2), 8, 1, 5)
-        gates = matrix.to_fc_gates()
-        assert np.allclose(gates_to_matrix(gates), matrix.get_full_matrix())
-
     def test_TwoLevelUnitary_inv(self):
         matrix1 = TwoLevelUnitary(unitary_group.rvs(2), 8, 1, 5)
         matrix2 = matrix1.inv()
@@ -147,7 +142,7 @@ class QuantumDecompTestCase(unittest.TestCase):
 
         np.random.seed(100)
         for matrix_size in [2, 4, 8]:
-            for _ in range(10):
+            for _ in range(3):
                 _check(random_orthogonal_matrix(matrix_size))
                 _check(random_unitary(matrix_size))
 
@@ -165,7 +160,7 @@ class QuantumDecompTestCase(unittest.TestCase):
 
         np.random.seed(100)
         for matrix_size in [2, 4, 8]:
-            for _ in range(10):
+            for _ in range(3):
                 _check(random_orthogonal_matrix(matrix_size))
                 _check(random_unitary(matrix_size))
 

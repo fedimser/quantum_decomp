@@ -56,7 +56,7 @@ class GateSingle(Gate):
     def type(self):
         return self.gate2.name + "-single"
 
-
+# TODO: flip_mask must go away.
 class GateFC(Gate):
     """ Represents fully contolled gate.
 
@@ -70,6 +70,9 @@ class GateFC(Gate):
         self.flip_mask = flip_mask
         self.qubit_count = qubit_count
 
+        #assert(flip_mask == 0)
+
+    # TODO: remove
     def without_flips(self):
         return GateFC(self.gate2, self.qubit_id, self.qubit_count, flip_mask=0)
 
@@ -78,6 +81,7 @@ class GateFC(Gate):
         if self.qubit_count == 1:
             return GateSingle(self.gate2, self.qubit_id, 1).to_qsharp_command()
 
+        # TODO: remove
         if self.flip_mask != 0:
             raise ValueError("flip_mask must be zero.")
 
@@ -98,6 +102,7 @@ class GateFC(Gate):
                     control_ids[0], self.qubit_id)
             return 'Controlled X(%s, (qs[%d]));' % (controls, self.qubit_id)
 
+    # TODO: move to 'testing'.
     def to_matrix(self):
         matrix_size = 2**self.qubit_count
         index2 = (matrix_size - 1) - self.flip_mask
@@ -110,13 +115,13 @@ class GateFC(Gate):
         return matrix.get_full_matrix()
 
     def __repr__(self):
-        return "%s on bit %d, fully controlled" % (
-            str(self.gate2), self.qubit_id)
+        return "%s on bit %d, fully controlled, fm=%d" % (
+            str(self.gate2), self.qubit_id, self.flip_mask)
 
     def type(self):
         return self.gate2.name + "-FC"
 
-
+# TODO: move to testing....???
 def gates_to_matrix(gates):
     """Converts gate sequence to matrix implemented by this sequence."""
     result = np.eye(2 ** gates[0].qubit_count)

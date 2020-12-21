@@ -14,12 +14,12 @@ def rearrange_for_merge(gates):
     while(pos != n):
         if taken[pos]:
             pos += 1
-        elif isinstance(gates[pos], GateFC):
+        elif 'GateFC' in str(type(gates[pos])):
             result.append(gates[pos])
             taken[pos] = True
             pos += 1
         else:
-            assert isinstance(gates[pos], GateSingle)
+            assert 'GateSingle' in str(type(gates[pos]))
             # Take first gate with minimal qubit_id.
             to_take = pos
             for i in range(pos + 1, n):
@@ -101,7 +101,7 @@ def optimize_gates(gates):
         flip_mask = 0
 
     for gate in gates:
-        if isinstance(gate, GateSingle):
+        if 'GateSingle' in str(type(gate)):
             if gate.gate2.name == 'X':
                 flip_mask ^= 2**gate.qubit_id
             elif gate.gate2.is_identity():
@@ -110,7 +110,7 @@ def optimize_gates(gates):
                 dump_flips()
                 result.append(gate)
         else:
-            assert isinstance(gate, GateFC)
+            assert 'GateFC' in str(type(gate))
             if gate.gate2.is_identity():
                 pass
             else:
