@@ -11,12 +11,11 @@ class Gate:
 class GateSingle(Gate):
     """Represents gate acting on a single qubit in a register."""
 
-    def __init__(self, gate2, qubit_id, qubit_count):
+    def __init__(self, gate2, qubit_id):
         self.gate2 = gate2
         self.qubit_id = qubit_id
-        self.qubit_count = qubit_count
 
-    def to_qsharp_command(self):
+    def to_qsharp_command(self, qubit_count):
         if self.gate2.name in ('Rx', 'Ry', 'Rz'):
             # QSharp uses different sign.
             return '%s(%.15f, qs[%d]);' % (
@@ -58,36 +57,18 @@ class GateSingle(Gate):
 
 # TODO: flip_mask must go away.
 class GateFC(Gate):
-    """ Represents fully contolled gate.
+    """ Represents fully contolled gate."""
 
-    `flip_mask` has ones at positions, for which qubit should be flipped before
-    and after applying operation.
-    """
-
-    def __init__(self, gate2, qubit_id, qubit_count, flip_mask=0):
+    def __init__(self, gate2, qubit_id):
         self.gate2 = gate2
         self.qubit_id = qubit_id
-        self.flip_mask = flip_mask
-        self.qubit_count = qubit_count
 
-        #assert(flip_mask == 0)
-
-    # TODO: remove
-    def without_flips(self):
-        return GateFC(self.gate2, self.qubit_id, self.qubit_count, flip_mask=0)
-
-    def to_qsharp_command(self):
+    def to_qsharp_command(self, qubits_count):
         # On one qubit controlled gate is just single-qubit gate.
-        if self.qubit_count == 1:
+        if qubits_count == 1:
             return GateSingle(self.gate2, self.qubit_id, 1).to_qsharp_command()
 
-        # TODO: remove
-        if self.flip_mask != 0:
-            raise ValueError("flip_mask must be zero.")
-
-        control_ids = [
-            i for i in range(
-                self.qubit_count) if i != self.qubit_id]
+        control_ids = [i for i in range(qubits_count) if i != self.qubit_id]
         controls = '[' + ', '.join(['qs[%d]' % i for i in control_ids]) + ']'
         if self.gate2.name in ('Rx', 'Ry', 'Rz'):
             # QSharp uses different sign.
@@ -97,15 +78,15 @@ class GateFC(Gate):
             return 'Controlled R1(%s, (%.15f, qs[%d]));' % (
                 controls, self.gate2.arg, self.qubit_id)
         elif self.gate2.name == 'X':
-            if self.qubit_count == 2:
+            if qubits_count == 2:
                 return 'CNOT(qs[%d], qs[%d]);' % (
                     control_ids[0], self.qubit_id)
             return 'Controlled X(%s, (qs[%d]));' % (controls, self.qubit_id)
 
     # TODO: move to 'testing'.
-    def to_matrix(self):
-        matrix_size = 2**self.qubit_count
-        index2 = (matrix_size - 1) - self.flip_mask
+    def to_matrix(self, qubits_count):
+        matrix_size = 2**qubits_count
+        index2 = (matrix_size - 1)
         index1 = index2 - 2**self.qubit_id
         matrix = TwoLevelUnitary(
             self.gate2.to_matrix(),
@@ -115,8 +96,7 @@ class GateFC(Gate):
         return matrix.get_full_matrix()
 
     def __repr__(self):
-        return "%s on bit %d, fully controlled, fm=%d" % (
-            str(self.gate2), self.qubit_id, self.flip_mask)
+        return "%s on bit %d, fully controlled" % (str(self.gate2), self.qubit_id)
 
     def type(self):
         return self.gate2.name + "-FC"
@@ -130,7 +110,7 @@ def gates_to_matrix(gates):
         result = gate.to_matrix() @ result
     return result
 
-
+# TODO: move to testing.
 def apply_on_qubit(gates, qubit_id, qubit_count):
     """Converts Gate2 gates to GateSingle gates acting on the same qubit."""
     return [GateSingle(gate, qubit_id, qubit_count) for gate in gates]

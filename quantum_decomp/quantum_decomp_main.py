@@ -8,7 +8,8 @@ from .src.gate import GateFC, GateSingle
 from .src.gate2 import Gate2
 from .src.optimize import optimize_gates
 from .src.two_level_unitary import TwoLevelUnitary
-from .src.utils import PAULI_X, is_unitary, is_special_unitary, is_power_of_two
+from .src.utils import PAULI_X, is_unitary, is_special_unitary, is_power_of_two, \
+    IDENTITY_2x2
 
 
 def two_level_decompose(A):
@@ -61,8 +62,9 @@ def two_level_decompose(A):
                 u_2x2.multiply_right(current_A)
                 result.append(u_2x2.inv())
 
-    result.append(TwoLevelUnitary(
-        current_A[n - 2:n, n - 2:n], n, n - 2, n - 1))
+    last_matrix = current_A[n - 2:n, n - 2:n]
+    if not np.allclose(last_matrix, IDENTITY_2x2):
+        result.append(TwoLevelUnitary(last_matrix, n, n - 2, n - 1))
     return result
 
 
@@ -90,13 +92,12 @@ def two_level_decompose_gray(A):
     return result
 
 
-def add_flips(flip_mask, gates, qubit_count):
+def add_flips(flip_mask, gates):
     """Adds X gates for all qubits specified by qubit_mask."""
-    # TODO: qubit_count is not needed.
     qubit_id = 0
     while (flip_mask > 0):
         if (flip_mask % 2) == 1:
-            gates.append(GateSingle(Gate2('X'), qubit_id, qubit_count))
+            gates.append(GateSingle(Gate2('X'), qubit_id))
         flip_mask //= 2
         qubit_id += 1
 
@@ -120,18 +121,18 @@ def matrix_to_gates(A, **kwargs):
     qubit_count = int(math.log2(A.shape[0]))
     prev_flip_mask = 0
     for matrix in matrices:
-        matrix.order_indices()  #TODO: why the f we need this?
+        matrix.order_indices()  #TODO: why do we need this?
         qubit_id_mask = matrix.index1 ^ matrix.index2
         assert is_power_of_two(qubit_id_mask)
         qubit_id = int(math.log2(qubit_id_mask))
 
         flip_mask = (matrix.matrix_size - 1) - (matrix.index1 | matrix.index2)
 
-        add_flips(flip_mask ^ prev_flip_mask, gates, qubit_count)
+        add_flips(flip_mask ^ prev_flip_mask, gates)
         for gate2 in unitary2x2_to_gates(matrix.matrix_2x2):
-            gates.append(GateFC(gate2, qubit_id, qubit_count, flip_mask=0))
+            gates.append(GateFC(gate2, qubit_id))
         prev_flip_mask = flip_mask
-    add_flips(prev_flip_mask, gates, qubit_count)
+    add_flips(prev_flip_mask, gates)
 
     #gates = optimize_gates(gates)
     return gates
