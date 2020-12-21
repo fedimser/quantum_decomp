@@ -28,7 +28,7 @@ def is_special_unitary(A):
 
 
 def is_power_of_two(x):
-    return 2**int(math.log2(x)) == x
+    return (x & (x - 1)) == 0 and x != 0
 
 
 def cast_to_real(x):

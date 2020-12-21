@@ -1,14 +1,12 @@
-import math
 import numpy as np
 
-from quantum_decomp.src.decompose_2x2 import unitary2x2_to_gates
 from quantum_decomp.src.utils import PAULI_X, is_unitary, is_power_of_two
 
 
 class TwoLevelUnitary:
     """Represents two-level unitary matrix.
 
-    Two-level uniary matrix is a unitary matrix obtained from the identity
+    Two-level unitary matrix is a unitary matrix obtained from the identity
     matrix by changing a 2x2 principal submatrix.
     """
 
