@@ -7,8 +7,8 @@ from .src.decompose_4x4 import decompose_4x4_optimal
 from .src.gate import GateFC, GateSingle
 from .src.gate2 import Gate2
 from .src.two_level_unitary import TwoLevelUnitary
-from .src.utils import PAULI_X, is_unitary, is_special_unitary, is_power_of_two, \
-    IDENTITY_2x2
+from .src.utils import PAULI_X, is_unitary, is_special_unitary, \
+    is_power_of_two, IDENTITY_2x2
 
 
 def two_level_decompose(A):
@@ -100,6 +100,7 @@ def add_flips(flip_mask, gates):
         flip_mask //= 2
         qubit_id += 1
 
+
 def matrix_to_gates(A, **kwargs):
     """Given unitary matrix A, returns sequence of gates which implements
     action of this matrix on register of qubits.
@@ -118,7 +119,7 @@ def matrix_to_gates(A, **kwargs):
     gates = []
     prev_flip_mask = 0
     for matrix in matrices:
-        matrix.order_indices() # Ensures that index2 > index1.
+        matrix.order_indices()  # Ensures that index2 > index1.
         qubit_id_mask = matrix.index1 ^ matrix.index2
         assert is_power_of_two(qubit_id_mask)
         qubit_id = int(math.log2(qubit_id_mask))

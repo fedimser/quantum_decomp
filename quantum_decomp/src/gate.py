@@ -39,13 +39,13 @@ class GateSingle(Gate):
             for i in range(2):
                 for j in range(2):
                     tile[i * ts2:(i + 1) * ts2,
-                    j * ts2:(j + 1) * ts2] = subtile * matrix[i, j]
+                         j * ts2:(j + 1) * ts2] = subtile * matrix[i, j]
 
         matrix_size = 2 ** qubits_count
         ret = np.zeros((matrix_size, matrix_size), dtype=np.complex128)
         for i in range(2 ** (qubits_count - self.qubit_id - 1)):
             ret[i * tile_size:(i + 1) * tile_size,
-            i * tile_size:(i + 1) * tile_size] = tile
+                i * tile_size:(i + 1) * tile_size] = tile
 
         return ret
 
