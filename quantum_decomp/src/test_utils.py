@@ -40,4 +40,5 @@ def assert_all_close(x, y, tol=1e-9):
 
 def check_decomp(matrix, gates, tol=1e-9):
     """Checks that `gates` is decomposition of `matrix`."""
-    assert_all_close(matrix, gates_to_matrix(gates), tol=tol)
+    qubits_count = int(np.log2(matrix.shape[0]))
+    assert_all_close(matrix, gates_to_matrix(gates, qubits_count), tol=tol)

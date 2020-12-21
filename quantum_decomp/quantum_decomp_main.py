@@ -152,7 +152,8 @@ def matrix_to_qsharp(matrix, **kwargs):
         op_name = kwargs['op_name']
     header = ('operation %s (qs : Qubit[]) : Unit {\n' % op_name)
     footer = '}\n'
-    code = '\n'.join(['  ' + gate.to_qsharp_command()
+    qubits_count = int(np.log2(matrix.shape[0]))
+    code = '\n'.join(['  ' + gate.to_qsharp_command(qubits_count)
                       for gate in matrix_to_gates(matrix, **kwargs)])
     return header + code + '\n' + footer
 

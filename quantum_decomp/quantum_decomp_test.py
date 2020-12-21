@@ -96,7 +96,7 @@ class QuantumDecompTestCase(unittest.TestCase):
 
     def test_matrix_to_gates_SWAP(self):
         gates = qd.matrix_to_gates(SWAP)
-        assert np.allclose(SWAP, gates_to_matrix(gates))
+        assert np.allclose(SWAP, gates_to_matrix(gates, 2))
 
     def test_matrix_to_gates_random_unitary(self):
         np.random.seed(100)

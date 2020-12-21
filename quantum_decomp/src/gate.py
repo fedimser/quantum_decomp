@@ -15,7 +15,7 @@ class GateSingle(Gate):
         self.gate2 = gate2
         self.qubit_id = qubit_id
 
-    def to_qsharp_command(self, qubit_count):
+    def to_qsharp_command(self, qubits_count):
         if self.gate2.name in ('Rx', 'Ry', 'Rz'):
             # QSharp uses different sign.
             return '%s(%.15f, qs[%d]);' % (
@@ -25,10 +25,11 @@ class GateSingle(Gate):
         elif self.gate2.name == 'X':
             return 'X(qs[%d]);' % (self.qubit_id)
 
-    def to_matrix(self):
+    # TODO: move to testing.
+    def to_matrix(self, qubits_count):
         """Tensor product I x I x ... x `gate2.to_matrix()` x I x ... x I."""
         matrix = self.gate2.to_matrix()
-        tile_size = 2**(self.qubit_id + 1)
+        tile_size = 2 ** (self.qubit_id + 1)
         ts2 = tile_size // 2  # Half tile size.
 
         if (self.qubit_id == 0):
@@ -39,13 +40,15 @@ class GateSingle(Gate):
             for i in range(2):
                 for j in range(2):
                     tile[i * ts2:(i + 1) * ts2, j *
-                         ts2:(j + 1) * ts2] = subtile * matrix[i, j]
+                                                ts2:(j + 1) * ts2] = subtile * \
+                                                                     matrix[
+                                                                         i, j]
 
-        matrix_size = 2 ** self.qubit_count
+        matrix_size = 2 ** qubits_count
         ret = np.zeros((matrix_size, matrix_size), dtype=np.complex128)
-        for i in range(2**(self.qubit_count - self.qubit_id - 1)):
+        for i in range(2 ** (qubits_count - self.qubit_id - 1)):
             ret[i * tile_size:(i + 1) * tile_size,
-                i * tile_size:(i + 1) * tile_size] = tile
+            i * tile_size:(i + 1) * tile_size] = tile
 
         return ret
 
@@ -54,6 +57,7 @@ class GateSingle(Gate):
 
     def type(self):
         return self.gate2.name + "-single"
+
 
 # TODO: flip_mask must go away.
 class GateFC(Gate):
@@ -66,7 +70,8 @@ class GateFC(Gate):
     def to_qsharp_command(self, qubits_count):
         # On one qubit controlled gate is just single-qubit gate.
         if qubits_count == 1:
-            return GateSingle(self.gate2, self.qubit_id, 1).to_qsharp_command()
+            return GateSingle(self.gate2, self.qubit_id).to_qsharp_command(
+                qubits_count)
 
         control_ids = [i for i in range(qubits_count) if i != self.qubit_id]
         controls = '[' + ', '.join(['qs[%d]' % i for i in control_ids]) + ']'
@@ -85,9 +90,9 @@ class GateFC(Gate):
 
     # TODO: move to 'testing'.
     def to_matrix(self, qubits_count):
-        matrix_size = 2**qubits_count
+        matrix_size = 2 ** qubits_count
         index2 = (matrix_size - 1)
-        index1 = index2 - 2**self.qubit_id
+        index1 = index2 - 2 ** self.qubit_id
         matrix = TwoLevelUnitary(
             self.gate2.to_matrix(),
             matrix_size,
@@ -96,21 +101,24 @@ class GateFC(Gate):
         return matrix.get_full_matrix()
 
     def __repr__(self):
-        return "%s on bit %d, fully controlled" % (str(self.gate2), self.qubit_id)
+        return "%s on bit %d, fully controlled" % (
+        str(self.gate2), self.qubit_id)
 
     def type(self):
         return self.gate2.name + "-FC"
 
+
 # TODO: move to testing....???
-def gates_to_matrix(gates):
+def gates_to_matrix(gates, qubits_count):
     """Converts gate sequence to matrix implemented by this sequence."""
-    result = np.eye(2 ** gates[0].qubit_count)
+    result = np.eye(2 ** qubits_count)
     for gate in gates:
         assert isinstance(gate, Gate)
-        result = gate.to_matrix() @ result
+        result = gate.to_matrix(qubits_count) @ result
     return result
 
+
 # TODO: move to testing.
-def apply_on_qubit(gates, qubit_id, qubit_count):
+def apply_on_qubit(gates, qubit_id):
     """Converts Gate2 gates to GateSingle gates acting on the same qubit."""
-    return [GateSingle(gate, qubit_id, qubit_count) for gate in gates]
+    return [GateSingle(gate, qubit_id) for gate in gates]
