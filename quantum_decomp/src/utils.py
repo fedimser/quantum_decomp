@@ -43,7 +43,7 @@ def skip_identities(gates):
 
 
 def permute_matrix(A, perm):
-    """Applies permutation P to columns and rows of matrix A.
+    """Applies permutation perm to columns and rows of matrix A.
 
     Equivalent to:
     P = np.zeros_like(A)
