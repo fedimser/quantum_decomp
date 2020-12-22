@@ -8,7 +8,7 @@ from .src.gate import GateFC, GateSingle
 from .src.gate2 import Gate2
 from .src.two_level_unitary import TwoLevelUnitary
 from .src.utils import PAULI_X, is_unitary, is_special_unitary, \
-    is_power_of_two, IDENTITY_2x2
+    is_power_of_two, IDENTITY_2x2, permute_matrix
 
 
 def two_level_decompose(A):
@@ -43,25 +43,24 @@ def two_level_decompose(A):
     n = A.shape[0]
     result = []
     # Make a copy, because we are going to mutate it.
-    current_A = np.array(A)
+    A = np.array(A)
 
     for i in range(n - 2):
         for j in range(n - 1, i, -1):
-            if abs(current_A[i, j]) < 1e-9:
+            if abs(A[i, j]) < 1e-9:
                 # Element is already zero, skipping.
                 pass
             else:
-                if abs(current_A[i, j - 1]) < 1e-9:
+                if abs(A[i, j - 1]) < 1e-9:
                     # Just swap columns.
                     u_2x2 = PAULI_X
                 else:
-                    u_2x2 = make_eliminating_matrix(
-                        current_A[i, j - 1], current_A[i, j])
+                    u_2x2 = make_eliminating_matrix(A[i, j - 1], A[i, j])
                 u_2x2 = TwoLevelUnitary(u_2x2, n, j - 1, j)
-                u_2x2.multiply_right(current_A)
+                u_2x2.multiply_right(A)
                 result.append(u_2x2.inv())
 
-    last_matrix = current_A[n - 2:n, n - 2:n]
+    last_matrix = A[n - 2:n, n - 2:n]
     if not np.allclose(last_matrix, IDENTITY_2x2):
         result.append(TwoLevelUnitary(last_matrix, n, n - 2, n - 1))
     return result
@@ -79,13 +78,8 @@ def two_level_decompose_gray(A):
     assert A.shape == (N, N), "Matrix must be square."
     assert is_unitary(A)
 
-    # Build permutation matrix.
     perm = [x ^ (x // 2) for x in range(N)]  # Gray code.
-    P = np.zeros((N, N), dtype=np.complex128)
-    for i in range(N):
-        P[i][perm[i]] = 1
-
-    result = two_level_decompose(P @ A @ P.T)
+    result = two_level_decompose(permute_matrix(A, perm))
     for matrix in result:
         matrix.apply_permutation(perm)
     return result

@@ -40,3 +40,17 @@ def cast_to_real(x):
 
 def skip_identities(gates):
     return [gate for gate in gates if not gate.gate2.is_identity()]
+
+
+def permute_matrix(A, perm):
+    """Applies permutation P to columns and rows of matrix A.
+
+    Equivalent to:
+    P = np.zeros_like(A)
+    for i in range(len(perm)): P[i][perm[i]] = 1
+    return P @ A @ P.T
+    """
+    A = np.array(A)
+    A[:, :] = A[:, perm]
+    A[:, :] = A[perm, :]
+    return A
