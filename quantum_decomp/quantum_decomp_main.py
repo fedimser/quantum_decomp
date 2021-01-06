@@ -14,8 +14,8 @@ from .src.utils import PAULI_X, is_unitary, is_special_unitary, \
 def two_level_decompose(A):
     """Returns list of two-level unitary matrices, which multiply to A.
 
-    Matrices are listed in application order, i.e. if answer is [u_1, u_2, u_3],
-    it means A = u_3 u_2 u_1.
+    Matrices are listed in application order, i.e. if answer is
+    [u_1, u_2, u_3], it means A = u_3 u_2 u_1.
 
     :param A: matrix to decompose.
     :return: The decomposition - list of two-level unitary matrices.

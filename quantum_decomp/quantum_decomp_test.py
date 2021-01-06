@@ -161,7 +161,6 @@ class QuantumDecompTestCase(unittest.TestCase):
         _check(SWAP)
         _check(CNOT)
         _check(QFT_2)
-        _check(BAD_MATRIX)
 
         np.random.seed(100)
         for matrix_size in [2, 4, 8]:
