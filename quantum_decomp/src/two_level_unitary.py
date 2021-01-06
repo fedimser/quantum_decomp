@@ -1,6 +1,6 @@
 import numpy as np
 
-from quantum_decomp.src.utils import PAULI_X, is_unitary, is_power_of_two
+from quantum_decomp.src.utils import PAULI_X, is_unitary, IDENTITY_2x2
 
 
 class TwoLevelUnitary:
@@ -55,3 +55,6 @@ class TwoLevelUnitary:
         assert(len(perm) == self.matrix_size)
         self.index1 = perm[self.index1]
         self.index2 = perm[self.index2]
+
+    def is_identity(self):
+        return np.allclose(self.matrix_2x2, IDENTITY_2x2)

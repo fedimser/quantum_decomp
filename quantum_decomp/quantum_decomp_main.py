@@ -14,8 +14,8 @@ from .src.utils import PAULI_X, is_unitary, is_special_unitary, \
 def two_level_decompose(A):
     """Returns list of two-level unitary matrices, which multiply to A.
 
-    Matrices are listed in application order, i.e. if aswer is [u_1, u_2, u_3],
-    it means A = u_3 u_2 u_1.
+    Matrices are listed in application order, i.e. if answer is
+    [u_1, u_2, u_3], it means A = u_3 u_2 u_1.
 
     :param A: matrix to decompose.
     :return: The decomposition - list of two-level unitary matrices.
@@ -25,6 +25,7 @@ def two_level_decompose(A):
         """Returns unitary matrix U, s.t. [a, b] U = [c, 0].
 
         Makes second element equal to zero.
+        Guarantees np.angle(c)=0.
         """
         assert (np.abs(a) > 1e-9 and np.abs(b) > 1e-9)
         theta = np.arctan(np.abs(b / a))
@@ -43,26 +44,38 @@ def two_level_decompose(A):
     n = A.shape[0]
     result = []
     # Make a copy, because we are going to mutate it.
-    A = np.array(A)
+    cur_A = np.array(A)
 
     for i in range(n - 2):
         for j in range(n - 1, i, -1):
-            if abs(A[i, j]) < 1e-9:
-                # Element is already zero, skipping.
-                pass
+            a = cur_A[i, j - 1]
+            b = cur_A[i, j]
+            if abs(cur_A[i, j]) < 1e-9:
+                # Element is already zero, nothing to do.
+                u_2x2 = IDENTITY_2x2
+                # But if it's last in row, ensure diagonal element will be 1.
+                if j == i + 1:
+                    u_2x2 = np.array([[1 / a, 0], [0, a]])
+            elif abs(cur_A[i, j - 1]) < 1e-9:
+                # Just swap columns.
+                u_2x2 = PAULI_X
+                # But if it's last in row, ensure diagonal element will be 1.
+                if j == i + 1:
+                    u_2x2 = np.array([[0, b], [1 / b, 0]])
             else:
-                if abs(A[i, j - 1]) < 1e-9:
-                    # Just swap columns.
-                    u_2x2 = PAULI_X
-                else:
-                    u_2x2 = make_eliminating_matrix(A[i, j - 1], A[i, j])
-                u_2x2 = TwoLevelUnitary(u_2x2, n, j - 1, j)
-                u_2x2.multiply_right(A)
+                u_2x2 = make_eliminating_matrix(a, b)
+            u_2x2 = TwoLevelUnitary(u_2x2, n, j - 1, j)
+            u_2x2.multiply_right(cur_A)
+            if not u_2x2.is_identity():
                 result.append(u_2x2.inv())
 
-    last_matrix = A[n - 2:n, n - 2:n]
-    if not np.allclose(last_matrix, IDENTITY_2x2):
-        result.append(TwoLevelUnitary(last_matrix, n, n - 2, n - 1))
+        # After we are done with row, diagonal element is 1.
+        assert np.allclose(cur_A[i, i], 1.0)
+
+    last_matrix = TwoLevelUnitary(cur_A[n - 2:n, n - 2:n], n, n - 2, n - 1)
+    if not last_matrix.is_identity():
+        result.append(last_matrix)
+
     return result
 
 

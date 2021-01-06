@@ -53,6 +53,28 @@ class QuantumDecompTestCase(unittest.TestCase):
                           [1, w * w, w]]) / np.sqrt(3)
         self.check_two_level_decompose(A)
 
+    # This test checks that two-level decomposition algorithm ensures that
+    # diagonal element is equal to 1 after we are done with a row.
+    def test_diagonal_elements_handled_correctly(self):
+        self.check_two_level_decompose(np.array([
+            [1j, 0, 0, 0],
+            [0, -1j, 0, 0],
+            [0, 0, -1j, 0],
+            [0, 0, 0, 1j],
+        ]))
+        self.check_two_level_decompose(np.array([
+            [1, 0, 0, 0],
+            [0, 0, 0, 1j],
+            [0, 0, 1, 0],
+            [0, 1j, 0, 0],
+        ]))
+        self.check_two_level_decompose(np.array([
+            [0, 0, 1j, 0],
+            [0, 1j, 0, 0],
+            [1j, 0, 0, 0],
+            [0, 0, 0, 1],
+        ]))
+
     def test_decompose_random(self):
         for matrix_size in range(2, 20):
             for i in range(4):
