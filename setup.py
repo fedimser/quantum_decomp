@@ -8,7 +8,7 @@ with open('requirements.txt', 'r', encoding='utf-8') as req_file:
 
 setuptools.setup(
     name="quantum_decomp",
-    version="1.1.0",
+    version="1.1.1",
     author="Dmytro Fedoriaka",
     description="Tool for decomposing unitary matrix into quantum gates",
     long_description=long_description,
