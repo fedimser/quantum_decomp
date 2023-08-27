@@ -52,7 +52,7 @@ class TwoLevelUnitary:
                                self.index2)
 
     def apply_permutation(self, perm):
-        assert(len(perm) == self.matrix_size)
+        assert (len(perm) == self.matrix_size)
         self.index1 = perm[self.index1]
         self.index2 = perm[self.index2]
 
