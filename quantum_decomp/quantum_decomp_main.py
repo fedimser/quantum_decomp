@@ -112,7 +112,7 @@ def matrix_to_gates(A, **kwargs):
     """Given unitary matrix A, returns sequence of gates which implements
     action of this matrix on register of qubits.
 
-    If optimized=True, applies optimized algorithm yielding less gates. Will
+    If `optimize=True`, applies optimized algorithm yielding less gates. Will
     affect output only when A is 4x4 matrix.
 
     :param A: 2^N x 2^N unitary matrix.
