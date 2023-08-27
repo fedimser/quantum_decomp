@@ -7,20 +7,6 @@ on:
     branches: [ master ]
 
 jobs:
-  style-check:
-    name: Style check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.7'
-          architecture: 'x64'
-      - name: Install libraries
-        run: pip install pycodestyle
-      - name: Check style
-        run: pycodestyle .
-        
   tests-ubuntu:
     name: Tests (Ubuntu)
     runs-on: ubuntu-latest
@@ -33,6 +19,26 @@ jobs:
       - name: Install requirements
         run: |
           pip install -r requirements.txt
-          pip install cirq pytest>=5.3 qiskit
+          pip install pytest>=5.3 pycodestyle
+          pip install cirq qiskit
+      - name: Check style
+        run: pycodestyle .
+      - name: Run tests
+        run: pytest . --ignore=quantum_decomp/qsharp_integration_test.py
+
+  tests-windows:
+    name: Tests (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.7'
+          architecture: 'x64'
+      - name: Install requirements
+        run: |
+          pip install -r requirements.txt
+          pip install pytest>=5.3 pycodestyle
+          pip install cirq qiskit
       - name: Run tests
         run: pytest . --ignore=quantum_decomp/qsharp_integration_test.py
