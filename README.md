@@ -43,7 +43,11 @@ use this tool.
 
 * This tool was inspired by [Microsoft Q# Coding Contest](https://codeforces.com/blog/entry/65579) and was implemented as part of online course "[Applications of Quantum Mechanics](https://courses.edx.org/courses/course-v1:MITx+8.06x+1T2019/course/)" at MIT. 
 
-* See this [paper](res/Fedoriaka2019Decomposition.pdf) for detailed description 
+* See this [paper](https://arxiv.org/abs/2501.07786) for detailed description 
 of the algorithm and further references to papers with algorithms.
   
 * [Blog post](https://codeforces.com/blog/entry/84655) about the tool. 
+
+### Citation
+
+If you use this tool in your research, please cite [this paper](https://arxiv.org/abs/2501.07786) on arXiv.
