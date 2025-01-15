@@ -1,4 +1,3 @@
-import unittest
 import warnings
 
 import numpy as np
@@ -156,7 +155,7 @@ def test_matrix_to_gates_identity():
 def test_matrix_to_qsharp_SWAP():
     qsharp_code = qd.matrix_to_qsharp(SWAP)
     expected = "\n".join([
-        "operation ApplyUnitaryMatrix (qs : Qubit[]) : Unit {",
+        "operation ApplyUnitaryMatrix (qs : Qubit[]) : Unit is Adj {",
         "  CNOT(qs[1], qs[0]);",
         "  CNOT(qs[0], qs[1]);",
         "  CNOT(qs[1], qs[0]);",
@@ -175,7 +174,11 @@ def test_matrix_to_cirq_circuit():
     _check(QFT_2)
 
     np.random.seed(100)
-    for matrix_size in [2, 4, 8]:
+    for matrix_size in [2, 4]:
+        for _ in range(10):
+            _check(random_orthogonal_matrix(matrix_size))
+            _check(random_unitary(matrix_size))
+    for matrix_size in [8, 16]:
         _check(random_orthogonal_matrix(matrix_size))
         _check(random_unitary(matrix_size))
 
@@ -193,10 +196,10 @@ def test_matrix_to_qiskit_circuit():
     _check(QFT_2)
 
     np.random.seed(100)
-    for matrix_size in [2, 4, 8]:
+    for matrix_size in [2, 4]:
+        for _ in range(10):
+            _check(random_orthogonal_matrix(matrix_size))
+            _check(random_unitary(matrix_size))
+    for matrix_size in [8, 16]:
         _check(random_orthogonal_matrix(matrix_size))
         _check(random_unitary(matrix_size))
-
-
-if __name__ == '__main__':
-    unittest.main()

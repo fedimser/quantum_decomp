@@ -20,11 +20,11 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install pytest>=5.3 pycodestyle
-          pip install cirq qiskit
+          pip install cirq qiskit qsharp
       - name: Check style
         run: pycodestyle .
       - name: Run tests
-        run: pytest . --ignore=quantum_decomp/qsharp_integration_test.py
+        run: pytest .
 
   tests-windows:
     name: Tests (Windows)
@@ -39,6 +39,6 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install pytest>=5.3 pycodestyle
-          pip install cirq qiskit
+          pip install cirq qiskit qsharp
       - name: Run tests
-        run: pytest . --ignore=quantum_decomp/qsharp_integration_test.py
+        run: pytest .

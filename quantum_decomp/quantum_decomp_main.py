@@ -154,7 +154,7 @@ def matrix_to_qsharp(matrix, **kwargs):
     op_name = 'ApplyUnitaryMatrix'
     if 'op_name' in kwargs:
         op_name = kwargs['op_name']
-    header = ('operation %s (qs : Qubit[]) : Unit {\n' % op_name)
+    header = ('operation %s (qs : Qubit[]) : Unit is Adj {\n' % op_name)
     footer = '}\n'
     qubits_count = int(np.log2(matrix.shape[0]))
     code = '\n'.join(['  ' + gate.to_qsharp_command(qubits_count)
