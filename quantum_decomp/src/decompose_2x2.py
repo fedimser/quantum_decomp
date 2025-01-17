@@ -12,7 +12,11 @@ def su_to_gates(A):
     assert is_special_unitary(A)
     u00 = A[0, 0]
     u01 = A[0, 1]
-    theta = np.arccos(np.abs(u00))
+    u00_abs = np.abs(u00)
+    if u00_abs > 1.0:
+        assert (u00_abs < 1 + 1e-9)
+        u00_abs = 1.0
+    theta = np.arccos(u00_abs)
     lmbda = np.angle(u00)
     mu = np.angle(u01)
 

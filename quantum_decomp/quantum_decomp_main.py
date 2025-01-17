@@ -44,7 +44,7 @@ def two_level_decompose(A):
     n = A.shape[0]
     result = []
     # Make a copy, because we are going to mutate it.
-    cur_A = np.array(A)
+    cur_A = np.array(A, dtype=np.complex128)
 
     for i in range(n - 2):
         for j in range(n - 1, i, -1):
