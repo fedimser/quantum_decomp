@@ -1,6 +1,6 @@
 import numpy as np
 
-from quantum_decomp.src.gate import GateSingle, GateFC
+from quantum_decomp.src.gate import GateFC, GateSingle
 from quantum_decomp.src.gate2 import Gate2
 
 

@@ -1,12 +1,13 @@
 import warnings
 
 import numpy as np
-from scipy.stats import unitary_group, ortho_group
+from scipy.stats import ortho_group, unitary_group
 
 import quantum_decomp as qd
-from quantum_decomp.src.gate import gates_to_matrix
-from quantum_decomp.src.test_utils import SWAP, check_decomp, QFT_2, CNOT, \
-    assert_all_close, random_orthogonal_matrix, random_unitary
+from quantum_decomp.src.test_utils import (CNOT, QFT_2, SWAP, assert_all_close,
+                                           check_decomp,
+                                           random_orthogonal_matrix,
+                                           random_unitary)
 from quantum_decomp.src.two_level_unitary import TwoLevelUnitary
 from quantum_decomp.src.utils import is_power_of_two
 

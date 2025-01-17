@@ -1,4 +1,3 @@
-import math
 import numpy as np
 
 IDENTITY_2x2 = np.eye(2, dtype=np.complex128)

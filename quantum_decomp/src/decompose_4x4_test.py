@@ -1,10 +1,12 @@
 import numpy as np
-from scipy.stats import unitary_group, ortho_group
+from scipy.stats import ortho_group, unitary_group
 
-from quantum_decomp.src.decompose_4x4 import decompose_4x4_optimal, \
-    decompose_4x4_tp, decompose_product_state
-from quantum_decomp.src.test_utils import SWAP, CNOT, QFT_2, check_decomp, \
-    assert_all_close, random_special_unitary
+from quantum_decomp.src.decompose_4x4 import (decompose_4x4_optimal,
+                                              decompose_4x4_tp,
+                                              decompose_product_state)
+from quantum_decomp.src.test_utils import (CNOT, QFT_2, SWAP, assert_all_close,
+                                           check_decomp,
+                                           random_special_unitary)
 
 
 def test_decompose_4x4_optimal_corner_cases():

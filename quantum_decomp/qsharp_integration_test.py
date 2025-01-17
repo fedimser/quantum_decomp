@@ -82,4 +82,5 @@ def test_qsharp_integration_8x8():
 
 
 def test_qsharp_integration_16x16():
-    check_on_matrix(unitary_group.rvs(16))
+    for _ in range(10):
+        check_on_matrix(unitary_group.rvs(16))
