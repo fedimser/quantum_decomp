@@ -7,8 +7,8 @@ from .src.decompose_4x4 import decompose_4x4_optimal
 from .src.gate import GateFC, GateSingle
 from .src.gate2 import Gate2
 from .src.two_level_unitary import TwoLevelUnitary
-from .src.utils import PAULI_X, is_unitary, is_special_unitary, \
-    is_power_of_two, IDENTITY_2x2, permute_matrix
+from .src.utils import (PAULI_X, IDENTITY_2x2, is_power_of_two,
+                        is_special_unitary, is_unitary, permute_matrix)
 
 
 def two_level_decompose(A):
@@ -154,7 +154,7 @@ def matrix_to_qsharp(matrix, **kwargs):
     op_name = 'ApplyUnitaryMatrix'
     if 'op_name' in kwargs:
         op_name = kwargs['op_name']
-    header = ('operation %s (qs : Qubit[]) : Unit is Adj {\n' % op_name)
+    header = ('operation %s (qs : Qubit[]) : Unit is Adj + Ctl {\n' % op_name)
     footer = '}\n'
     qubits_count = int(np.log2(matrix.shape[0]))
     code = '\n'.join(['  ' + gate.to_qsharp_command(qubits_count)
@@ -211,7 +211,7 @@ def matrix_to_qiskit_circuit(A, **kwargs):
     :return: `qiskit.QuantumCircuit` implementing this matrix.
     """
     from qiskit import QuantumCircuit
-    from qiskit.circuit.library import XGate, RYGate, RZGate, U1Gate
+    from qiskit.circuit.library import RYGate, RZGate, U1Gate, XGate
 
     def gate_to_qiskit(gate2):
         if gate2.name == 'X':

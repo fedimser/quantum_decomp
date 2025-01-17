@@ -156,7 +156,7 @@ def test_matrix_to_gates_identity():
 def test_matrix_to_qsharp_SWAP():
     qsharp_code = qd.matrix_to_qsharp(SWAP)
     expected = "\n".join([
-        "operation ApplyUnitaryMatrix (qs : Qubit[]) : Unit is Adj {",
+        "operation ApplyUnitaryMatrix (qs : Qubit[]) : Unit is Adj + Ctl {",
         "  CNOT(qs[1], qs[0]);",
         "  CNOT(qs[0], qs[1]);",
         "  CNOT(qs[1], qs[0]);",

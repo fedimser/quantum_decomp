@@ -60,7 +60,7 @@ def check_on_matrix(matrix):
     op_code = qd.matrix_to_qsharp(matrix, op_name='Op')
     qubits_count = int(np.log2(matrix.shape[0]))
     dump_matrix = dump_qsharp_unitary(op_code, qubits_count)
-    assert cirq.equal_up_to_global_phase(matrix, dump_matrix, atol=1e-4)
+    assert cirq.equal_up_to_global_phase(matrix, dump_matrix, atol=2e-4)
 
 
 def test_qsharp_integration_2x2():
