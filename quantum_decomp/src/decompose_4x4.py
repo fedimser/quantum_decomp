@@ -14,21 +14,28 @@ Referecnes:
 import numpy as np
 
 from quantum_decomp.src.decompose_2x2 import su_to_gates
-from quantum_decomp.src.gate import (GateFC, GateSingle, apply_on_qubit,
-                                     gates_to_matrix)
+from quantum_decomp.src.gate import (
+    GateFC,
+    GateSingle,
+    apply_on_qubit,
+    gates_to_matrix,
+)
 from quantum_decomp.src.gate2 import Gate2
 from quantum_decomp.src.linalg import orthonormal_eigensystem
-from quantum_decomp.src.utils import (cast_to_real, is_real,
-                                      is_special_unitary, is_unitary,
-                                      skip_identities)
+from quantum_decomp.src.utils import (
+    cast_to_real,
+    is_real,
+    is_special_unitary,
+    is_unitary,
+    skip_identities,
+)
 
 # "Magic basis". Columns are Phi vectors defined in [2].
 # Last two columns replaced to make formula A2 true.
 # Columns of Phi form maximally entangled basis.
-Phi = np.sqrt(0.5) * np.array([[1, -1j, 0, 0],
-                               [0, 0, -1j, 1],
-                               [0, 0, -1j, -1],
-                               [1, 1j, 0, 0]])
+Phi = np.sqrt(0.5) * np.array(
+    [[1, -1j, 0, 0], [0, 0, -1j, 1], [0, 0, -1j, -1], [1, 1j, 0, 0]]
+)
 Phi_dag = Phi.conj().T
 
 
@@ -66,8 +73,12 @@ def magic_N(a):
 def trace_B(A):
     """Partial trace."""
     assert A.shape == (4, 4)
-    return np.array([[A[0, 0] + A[1, 1], A[0, 2] + A[1, 3]],
-                     [A[2, 0] + A[3, 1], A[2, 2] + A[3, 3]]])
+    return np.array(
+        [
+            [A[0, 0] + A[1, 1], A[0, 2] + A[1, 3]],
+            [A[2, 0] + A[3, 1], A[2, 2] + A[3, 3]],
+        ]
+    )
 
 
 def is_maximally_entangled_state(x):
@@ -145,12 +156,13 @@ def decompose_product_state(state):
     else:
         a = normalize(c[0], c[2])
         b = normalize(c[0], c[1])
-        a2_phase = (phase[2] - phase[0])
+        a2_phase = phase[2] - phase[0]
         if np.abs(c[0]) + np.abs(c[2]) < 1e-9:
-            a2_phase = (phase[3] - phase[1])
+            a2_phase = phase[3] - phase[1]
         a = np.array([a[0], a[1] * np.exp(1j * a2_phase)])
-        b = np.array([b[0] * np.exp(1j * phase[0]),
-                      b[1] * np.exp(1j * phase[1])])
+        b = np.array(
+            [b[0] * np.exp(1j * phase[0]), b[1] * np.exp(1j * phase[1])]
+        )
 
     assert np.allclose(np.kron(a, b), state)
     return a, b
@@ -170,20 +182,24 @@ def decompose_4x4_tp(U):
 
     B = None
     for x, y in grid:
-        B = U[2 * x:2 * x + 2, 2 * y:2 * y + 2]
+        B = U[2 * x : 2 * x + 2, 2 * y : 2 * y + 2]
         det = np.linalg.det(B)
         if np.abs(np.linalg.det(B)) > 1e-9:
             B = B / np.sqrt(det)
             break
-    assert is_special_unitary(B)
+    assert B is not None and is_special_unitary(B)
 
     x2, y2 = 0, 0
     for x, y in grid:
         if np.abs(B[x, y]) > 1e-9:
             x2, y2 = x, y
     b = B[x2, y2]
-    A = np.array([[U[x2, y2] / b, U[x2, y2 + 2] / b],
-                  [U[x2 + 2, y2] / b, U[x2 + 2, y2 + 2] / b]])
+    A = np.array(
+        [
+            [U[x2, y2] / b, U[x2, y2 + 2] / b],
+            [U[x2 + 2, y2] / b, U[x2 + 2, y2 + 2] / b],
+        ]
+    )
     A /= np.sqrt(np.linalg.det(A))
     assert is_special_unitary(A)
 
@@ -240,8 +256,11 @@ def decompose_4x4_partial(Psi):
     if len(deltas) == 2:
         delta = None
         for d in deltas:
-            p2 = -1j * (e_f_ort * np.exp(1j * d) + e_ort_f *
-                        np.exp(-1j * d)) / np.sqrt(2)
+            p2 = (
+                -1j
+                * (e_f_ort * np.exp(1j * d) + e_ort_f * np.exp(-1j * d))
+                / np.sqrt(2)
+            )
             if _allclose(p2, Psi_bar[:, 2]):
                 delta = d
         assert delta is not None
@@ -249,8 +268,9 @@ def decompose_4x4_partial(Psi):
     # Correcting ambiguity in sign.
     # Formula A5b has "+/-", and we need to choose correct sign.
     p3_1 = Psi_bar[:, 3]
-    p3_2 = (e_f_ort * np.exp(1j * delta) - e_ort_f *
-            np.exp(-1j * delta)) / np.sqrt(2)
+    p3_2 = (
+        e_f_ort * np.exp(1j * delta) - e_ort_f * np.exp(-1j * delta)
+    ) / np.sqrt(2)
     negate_k = 1
     for i in range(4):
         if abs(p3_2[i]) > 1e-9 and np.real(p3_1[i] / p3_2[i]) < -0.5:
@@ -261,11 +281,15 @@ def decompose_4x4_partial(Psi):
     assert is_unitary(np.array([e_f, e_f_ort, e_ort_f, e_ort_f_ort]))
     assert np.allclose(Psi_bar[:, 0], (e_f + e_ort_f_ort) / np.sqrt(2))
     assert np.allclose(Psi_bar[:, 1], -1j * (e_f - e_ort_f_ort) / np.sqrt(2))
-    p2 = -1j * (e_f_ort * np.exp(1j * delta) + e_ort_f *
-                np.exp(-1j * delta)) / np.sqrt(2)
+    p2 = (
+        -1j
+        * (e_f_ort * np.exp(1j * delta) + e_ort_f * np.exp(-1j * delta))
+        / np.sqrt(2)
+    )
     assert np.allclose(Psi_bar[:, 2], p2)
-    p3 = (e_f_ort * np.exp(1j * delta) - e_ort_f *
-          np.exp(-1j * delta)) / np.sqrt(2)
+    p3 = (
+        e_f_ort * np.exp(1j * delta) - e_ort_f * np.exp(-1j * delta)
+    ) / np.sqrt(2)
     assert _allclose(Psi_bar[:, 3], p3)
 
     UA = np.array([e.conj(), e_ort.conj() * np.exp(1j * delta)])
@@ -274,10 +298,14 @@ def decompose_4x4_partial(Psi):
     assert is_unitary(UB)
 
     UAUB = np.kron(UA, UB)
-    UAUB_alt = np.array([e_f.conj(),
-                         e_f_ort.conj() * np.exp(-1j * delta),
-                         e_ort_f.conj() * np.exp(1j * delta),
-                         e_ort_f_ort.conj()])
+    UAUB_alt = np.array(
+        [
+            e_f.conj(),
+            e_f_ort.conj() * np.exp(-1j * delta),
+            e_ort_f.conj() * np.exp(1j * delta),
+            e_ort_f_ort.conj(),
+        ]
+    )
     assert np.allclose(UAUB, UAUB_alt)
     assert is_unitary(UAUB)
 
@@ -333,20 +361,22 @@ def decompose_to_magic_diagonal(U):
 
     assert np.allclose(VAVB @ Psi @ np.diag(np.exp(1j * xi)), Phi)
     assert np.allclose(U @ Psi @ np.diag(np.exp(-1j * eps)), Psi_tilde)
-    assert np.allclose(UAUB.conj().T @ Psi_tilde @ np.diag(
-        np.exp(1j * (eps + xi + lmbda))), Phi)
+    assert np.allclose(
+        UAUB.conj().T @ Psi_tilde @ np.diag(np.exp(1j * (eps + xi + lmbda))),
+        Phi,
+    )
     assert _allclose(U, np.kron(UA, UB) @ Ud @ np.kron(VA, VB))
 
     # Restore coefficients of non-local unitary.
-    gl_phase = - 0.25 * np.sum(lmbda)
+    gl_phase = -0.25 * np.sum(lmbda)
     alpha_x = -0.5 * (lmbda[0] + lmbda[2] + 2 * gl_phase)
     alpha_y = -0.5 * (lmbda[1] + lmbda[2] + 2 * gl_phase)
     alpha_z = -0.5 * (lmbda[0] + lmbda[1] + 2 * gl_phase)
     alpha = np.array([alpha_x, alpha_y, alpha_z])
-    assert np.allclose(lmbda[0], - gl_phase - alpha_x + alpha_y - alpha_z)
-    assert np.allclose(lmbda[1], - gl_phase + alpha_x - alpha_y - alpha_z)
-    assert np.allclose(lmbda[2], - gl_phase - alpha_x - alpha_y + alpha_z)
-    assert np.allclose(lmbda[3], - gl_phase + alpha_x + alpha_y + alpha_z)
+    assert np.allclose(lmbda[0], -gl_phase - alpha_x + alpha_y - alpha_z)
+    assert np.allclose(lmbda[1], -gl_phase + alpha_x - alpha_y - alpha_z)
+    assert np.allclose(lmbda[2], -gl_phase - alpha_x - alpha_y + alpha_z)
+    assert np.allclose(lmbda[3], -gl_phase + alpha_x + alpha_y + alpha_z)
 
     assert _allclose(Ud, np.exp(1j * gl_phase) * magic_N(alpha))
     assert _allclose(U, np.exp(1j * gl_phase) * UAUB @ magic_N(alpha) @ VAVB)
@@ -364,12 +394,12 @@ def decompose_to_magic_diagonal(U):
     assert _allclose(U, np.exp(1j * gl_phase) * UAUB @ magic_N(alpha) @ VAVB)
 
     return {
-        'UA': UA,
-        'UB': UB,
-        'VA': VA,
-        'VB': VB,
-        'alpha': alpha,
-        'global_phase': gl_phase,
+        "UA": UA,
+        "UB": UB,
+        "VA": VA,
+        "VB": VB,
+        "alpha": alpha,
+        "global_phase": gl_phase,
     }
 
 
@@ -384,14 +414,14 @@ def decompose_magic_N(a):
     t3 = 2 * a[1] - 0.5 * np.pi
     result = []
 
-    result.append(GateSingle(Gate2('Rz', 0.5 * np.pi), 1))
-    result.append(GateFC(Gate2('X'), 0))
-    result.append(GateSingle(Gate2('Rz', t1), 0))
-    result.append(GateSingle(Gate2('Ry', t2), 1))
-    result.append(GateFC(Gate2('X'), 1))
-    result.append(GateSingle(Gate2('Ry', t3), 1))
-    result.append(GateFC(Gate2('X'), 0))
-    result.append(GateSingle(Gate2('Rz', -0.5 * np.pi), 0))
+    result.append(GateSingle(Gate2("Rz", 0.5 * np.pi), 1))
+    result.append(GateFC(Gate2("X"), 0))
+    result.append(GateSingle(Gate2("Rz", t1), 0))
+    result.append(GateSingle(Gate2("Ry", t2), 1))
+    result.append(GateFC(Gate2("X"), 1))
+    result.append(GateSingle(Gate2("Ry", t3), 1))
+    result.append(GateFC(Gate2("X"), 0))
+    result.append(GateSingle(Gate2("Rz", -0.5 * np.pi), 0))
 
     N = magic_N(a)
     assert np.allclose(N, gates_to_matrix(result, 2) * np.exp(0.25j * np.pi))
@@ -412,17 +442,17 @@ def decompose_4x4_optimal(U):
     magic_decomp = decompose_to_magic_diagonal(U)
 
     result = []
-    result += apply_on_qubit(su_to_gates(magic_decomp['VA']), 1)
-    result += apply_on_qubit(su_to_gates(magic_decomp['VB']), 0)
-    result += decompose_magic_N(magic_decomp['alpha'])
-    result += apply_on_qubit(su_to_gates(magic_decomp['UA']), 1)
-    result += apply_on_qubit(su_to_gates(magic_decomp['UB']), 0)
+    result += apply_on_qubit(su_to_gates(magic_decomp["VA"]), 1)
+    result += apply_on_qubit(su_to_gates(magic_decomp["VB"]), 0)
+    result += decompose_magic_N(magic_decomp["alpha"])
+    result += apply_on_qubit(su_to_gates(magic_decomp["UA"]), 1)
+    result += apply_on_qubit(su_to_gates(magic_decomp["UB"]), 0)
 
     # Adding global phase using Rz and R1.
-    gl_phase = magic_decomp['global_phase'] + 0.25 * np.pi
+    gl_phase = magic_decomp["global_phase"] + 0.25 * np.pi
     if np.abs(gl_phase) > 1e-9:
-        result.append(GateSingle(Gate2('Rz', 2 * gl_phase), 0))
-        result.append(GateSingle(Gate2('R1', 2 * gl_phase), 0))
+        result.append(GateSingle(Gate2("Rz", 2 * gl_phase), 0))
+        result.append(GateSingle(Gate2("R1", 2 * gl_phase), 0))
 
     result = skip_identities(result)
 

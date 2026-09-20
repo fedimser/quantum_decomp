@@ -4,10 +4,15 @@ import numpy as np
 from scipy.stats import ortho_group, unitary_group
 
 import quantum_decomp as qd
-from quantum_decomp.src.test_utils import (CNOT, QFT_2, SWAP, assert_all_close,
-                                           check_decomp,
-                                           random_orthogonal_matrix,
-                                           random_unitary)
+from quantum_decomp.src.test_utils import (
+    CNOT,
+    QFT_2,
+    SWAP,
+    assert_all_close,
+    check_decomp,
+    random_orthogonal_matrix,
+    random_unitary,
+)
 from quantum_decomp.src.two_level_unitary import TwoLevelUnitary
 from quantum_decomp.src.utils import is_power_of_two
 
@@ -53,33 +58,43 @@ def test_decompose_2x2():
 
 def test_decompose_3x3():
     w = np.exp((2j / 3) * np.pi)
-    A = w * np.array([[1, 1, 1],
-                      [1, w, w * w],
-                      [1, w * w, w]]) / np.sqrt(3)
+    A = w * np.array([[1, 1, 1], [1, w, w * w], [1, w * w, w]]) / np.sqrt(3)
     _check_two_level_decompose(A)
 
 
 # This test checks that two-level decomposition algorithm ensures that
 # diagonal element is equal to 1 after we are done with a row.
 def test_diagonal_elements_handled_correctly():
-    _check_matrix_to_gates(np.array([
-        [1j, 0, 0, 0],
-        [0, -1j, 0, 0],
-        [0, 0, -1j, 0],
-        [0, 0, 0, 1j],
-    ]))
-    _check_matrix_to_gates(np.array([
-        [1, 0, 0, 0],
-        [0, 0, 0, 1j],
-        [0, 0, 1, 0],
-        [0, 1j, 0, 0],
-    ]))
-    _check_matrix_to_gates(np.array([
-        [0, 0, 1j, 0],
-        [0, 1j, 0, 0],
-        [1j, 0, 0, 0],
-        [0, 0, 0, 1],
-    ]))
+    _check_matrix_to_gates(
+        np.array(
+            [
+                [1j, 0, 0, 0],
+                [0, -1j, 0, 0],
+                [0, 0, -1j, 0],
+                [0, 0, 0, 1j],
+            ]
+        )
+    )
+    _check_matrix_to_gates(
+        np.array(
+            [
+                [1, 0, 0, 0],
+                [0, 0, 0, 1j],
+                [0, 0, 1, 0],
+                [0, 1j, 0, 0],
+            ]
+        )
+    )
+    _check_matrix_to_gates(
+        np.array(
+            [
+                [0, 0, 1j, 0],
+                [0, 1j, 0, 0],
+                [1j, 0, 0, 0],
+                [0, 0, 0, 1],
+            ]
+        )
+    )
 
 
 def test_decompose_random():
@@ -100,10 +115,18 @@ def test_decompose_gray_4x4():
     _check_decompose_gray(np.eye(4).T)
 
     w = np.exp((2j / 3) * np.pi)
-    A = w * np.array([[1, 1, 1, 0],
-                      [1, w, w * w, 0],
-                      [1, w * w, w, 0],
-                      [0, 0, 0, np.sqrt(3)]]) / np.sqrt(3)
+    A = (
+        w
+        * np.array(
+            [
+                [1, 1, 1, 0],
+                [1, w, w * w, 0],
+                [1, w * w, w, 0],
+                [0, 0, 0, np.sqrt(3)],
+            ]
+        )
+        / np.sqrt(3)
+    )
     _check_decompose_gray(A)
 
 
@@ -155,12 +178,16 @@ def test_matrix_to_gates_identity():
 
 def test_matrix_to_qsharp_SWAP():
     qsharp_code = qd.matrix_to_qsharp(SWAP)
-    expected = "\n".join([
-        "operation ApplyUnitaryMatrix (qs : Qubit[]) : Unit is Adj + Ctl {",
-        "  CNOT(qs[1], qs[0]);",
-        "  CNOT(qs[0], qs[1]);",
-        "  CNOT(qs[1], qs[0]);",
-        "}", ""])
+    expected = "\n".join(
+        [
+            "operation ApplyUnitaryMatrix (qs : Qubit[]) : Unit is Adj + Ctl {",
+            "  CNOT(qs[1], qs[0]);",
+            "  CNOT(qs[0], qs[1]);",
+            "  CNOT(qs[1], qs[0]);",
+            "}",
+            "",
+        ]
+    )
     assert qsharp_code == expected
 
 

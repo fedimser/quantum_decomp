@@ -1,2 +1,11 @@
-autopep8 --in-place --aggressive --aggressive -r quantum_decomp
-pycodestyle quantum_decomp
+result=0
+
+echo "Running black..."
+black --check ./quantum_decomp --fast
+result+=$?
+
+echo "Running pyright..."
+pyright ./quantum_decomp
+result+=$?
+
+exit $result

@@ -12,7 +12,7 @@ def is_orthogonal(Q):
 
 def is_unitary(A):
     n = A.shape[0]
-    if (A.shape != (n, n)):
+    if A.shape != (n, n):
         raise ValueError("Matrix is not square.")
     A = np.array(A)
     return np.allclose(np.eye(n), A @ A.conj().T)

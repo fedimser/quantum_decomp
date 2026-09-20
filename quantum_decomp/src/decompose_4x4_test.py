@@ -1,12 +1,19 @@
 import numpy as np
 from scipy.stats import ortho_group, unitary_group
 
-from quantum_decomp.src.decompose_4x4 import (decompose_4x4_optimal,
-                                              decompose_4x4_tp,
-                                              decompose_product_state)
-from quantum_decomp.src.test_utils import (CNOT, QFT_2, SWAP, assert_all_close,
-                                           check_decomp,
-                                           random_special_unitary)
+from quantum_decomp.src.decompose_4x4 import (
+    decompose_4x4_optimal,
+    decompose_4x4_tp,
+    decompose_product_state,
+)
+from quantum_decomp.src.test_utils import (
+    CNOT,
+    QFT_2,
+    SWAP,
+    assert_all_close,
+    check_decomp,
+    random_special_unitary,
+)
 
 
 def test_decompose_4x4_optimal_corner_cases():
@@ -15,16 +22,23 @@ def test_decompose_4x4_optimal_corner_cases():
     check_decomp(QFT_2, decompose_4x4_optimal(QFT_2))
 
     w = np.exp((2j / 3) * np.pi)
-    A = w * np.array([[1, 1, 1, 0],
-                      [1, w, w * w, 0],
-                      [1, w * w, w, 0],
-                      [0, 0, 0, np.sqrt(3)]]) / np.sqrt(3)
+    A = (
+        w
+        * np.array(
+            [
+                [1, 1, 1, 0],
+                [1, w, w * w, 0],
+                [1, w * w, w, 0],
+                [0, 0, 0, np.sqrt(3)],
+            ]
+        )
+        / np.sqrt(3)
+    )
     check_decomp(A, decompose_4x4_optimal(A), tol=3e-8)
 
-    Phi = np.sqrt(0.5) * np.array([[1, -1j, 0, 0],
-                                   [0, 0, -1j, 1],
-                                   [0, 0, -1j, -1],
-                                   [1, 1j, 0, 0]])
+    Phi = np.sqrt(0.5) * np.array(
+        [[1, -1j, 0, 0], [0, 0, -1j, 1], [0, 0, -1j, -1], [1, 1j, 0, 0]]
+    )
     check_decomp(Phi, decompose_4x4_optimal(Phi))
 
 
@@ -70,5 +84,4 @@ def test_decompose_product_state():
         assert np.allclose(np.kron(a, b), state)
 
     _check([0, -3e-49j, -np.sqrt(0.5), -np.sqrt(0.5)])
-    _check([-6.29490599e-09 - 7.85046229e-17j,
-            0, 0, -1e-09 + 1.00000000e+00j])
+    _check([-6.29490599e-09 - 7.85046229e-17j, 0, 0, -1e-09 + 1.00000000e00j])

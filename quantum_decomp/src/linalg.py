@@ -36,10 +36,10 @@ def find_real_basis(vecs):
                 break
         assert v2 != -1
         vecs = [
-            project_on_orth_subspace(
-                vecs[i],
-                vecs[v2]) for i in range(
-                len(vecs)) if i != v2]
+            project_on_orth_subspace(vecs[i], vecs[v2])
+            for i in range(len(vecs))
+            if i != v2
+        ]
     return ans
 
 

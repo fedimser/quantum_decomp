@@ -14,7 +14,7 @@ def su_to_gates(A):
     u01 = A[0, 1]
     u00_abs = np.abs(u00)
     if u00_abs > 1.0:
-        assert (u00_abs < 1 + 1e-9)
+        assert u00_abs < 1 + 1e-9
         u00_abs = 1.0
     theta = np.arccos(u00_abs)
     lmbda = np.angle(u00)
@@ -22,11 +22,11 @@ def su_to_gates(A):
 
     result = []
     if np.abs(lmbda - mu) > 1e-9:
-        result.append(Gate2('Rz', lmbda - mu))
+        result.append(Gate2("Rz", lmbda - mu))
     if np.abs(theta) > 1e-9:
-        result.append(Gate2('Ry', 2 * theta))
+        result.append(Gate2("Ry", 2 * theta))
     if np.abs(lmbda + mu) > 1e-9:
-        result.append(Gate2('Rz', lmbda + mu))
+        result.append(Gate2("Rz", lmbda + mu))
     return result
 
 
@@ -40,7 +40,7 @@ def unitary2x2_to_gates(A):
     if np.abs(phi) < 1e-9:
         return su_to_gates(A)
     elif np.allclose(A, PAULI_X):
-        return [Gate2('X')]
+        return [Gate2("X")]
     else:
         A = np.diag([1.0, np.exp(-1j * phi)]) @ A
-        return su_to_gates(A) + [Gate2('R1', phi)]
+        return su_to_gates(A) + [Gate2("R1", phi)]
