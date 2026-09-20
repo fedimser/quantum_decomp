@@ -238,7 +238,9 @@ def matrix_to_qiskit_circuit(A, **kwargs):
             arg_gates = controls + [target]
             cgate = gate_to_qiskit(gate.gate2)
             if len(controls):
-                cgate = cgate.control(num_ctrl_qubits=len(controls))
+                cgate = cgate.control(
+                    num_ctrl_qubits=len(controls), annotated=False
+                )
             circuit.append(cgate, arg_gates)
         elif isinstance(gate, GateSingle):
             circuit.append(gate_to_qiskit(gate.gate2), [qubits[gate.qubit_id]])
