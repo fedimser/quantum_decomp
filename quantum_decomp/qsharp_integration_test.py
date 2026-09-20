@@ -8,6 +8,7 @@ from contextlib import redirect_stdout
 
 import cirq
 import numpy as np
+from numpy.typing import NDArray
 from qdk import qsharp
 from scipy.stats import unitary_group
 
@@ -16,17 +17,23 @@ from quantum_decomp.src.test_utils import CNOT, QFT_2, SWAP
 from quantum_decomp.src.utils import permute_matrix
 
 
-def change_int_endianness(val, n):
+def change_int_endianness(val: int, n: int) -> int:
     return sum(((val >> i) & 1) << (n - 1 - i) for i in range(n))
 
 
-def change_matrix_endianness(matrix, n):
+def change_matrix_endianness(
+    matrix: NDArray[np.complex128],
+    n: int,
+) -> NDArray[np.complex128]:
     assert matrix.shape == (2**n, 2**n)
     perm = [change_int_endianness(i, n) for i in range(2**n)]
     return permute_matrix(matrix, perm)
 
 
-def dump_qsharp_unitary(op_code, qubits_count):
+def dump_qsharp_unitary(
+    op_code: str,
+    qubits_count: int,
+) -> NDArray[np.complex128]:
     """Returns unitary matrix which is implemented by Q# operation.
 
     args:
@@ -36,17 +43,9 @@ def dump_qsharp_unitary(op_code, qubits_count):
         np.array - unitary matrix implemented by given operation.
     """
     qsharp.eval(op_code)
-
-    f = io.StringIO()
-    with redirect_stdout(f):
-        qsharp.eval(f"Std.Diagnostics.DumpOperation({qubits_count}, Op);")
-    dump_output = f.getvalue()
-
-    tokens = dump_output.replace("𝑖", "j").replace("−", "-").split(" ")[1:]
-    values = np.array([np.complex128(x) for x in tokens], dtype=np.complex128)
-    assert len(values == (2**qubits_count) ** 2)
-    ans = values.reshape((2**qubits_count, 2**qubits_count))
-    return change_matrix_endianness(ans, qubits_count)
+    values = np.array(qsharp.dump_operation("Op", qubits_count))
+    assert values.shape == (2**qubits_count, 2**qubits_count)
+    return change_matrix_endianness(values, qubits_count)
 
 
 def check_on_matrix(matrix):
