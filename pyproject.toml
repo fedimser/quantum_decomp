@@ -24,6 +24,7 @@ dependencies = [
     "numpy>=2.0",
 ]
 
+[project.optional-dependencies]
 test = [
     "cirq>=1.7.0",
     "pycodestyle",
