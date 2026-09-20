@@ -175,7 +175,7 @@ def decompose_4x4_tp(U):
         if np.abs(np.linalg.det(B)) > 1e-9:
             B = B / np.sqrt(det)
             break
-    assert is_special_unitary(B)
+    assert B is not None and is_special_unitary(B)
 
     x2, y2 = 0, 0
     for x, y in grid:
