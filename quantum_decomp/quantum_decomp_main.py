@@ -7,8 +7,14 @@ from .src.decompose_4x4 import decompose_4x4_optimal
 from .src.gate import GateFC, GateSingle
 from .src.gate2 import Gate2
 from .src.two_level_unitary import TwoLevelUnitary
-from .src.utils import (PAULI_X, IDENTITY_2x2, is_power_of_two,
-                        is_special_unitary, is_unitary, permute_matrix)
+from .src.utils import (
+    PAULI_X,
+    IDENTITY_2x2,
+    is_power_of_two,
+    is_special_unitary,
+    is_unitary,
+    permute_matrix,
+)
 
 
 def two_level_decompose(A):
@@ -27,17 +33,25 @@ def two_level_decompose(A):
         Makes second element equal to zero.
         Guarantees np.angle(c)=0.
         """
-        assert (np.abs(a) > 1e-9 and np.abs(b) > 1e-9)
+        assert np.abs(a) > 1e-9 and np.abs(b) > 1e-9
         theta = np.arctan(np.abs(b / a))
         lmbda = -np.angle(a)
         mu = np.pi + np.angle(b) - np.angle(a) - lmbda
-        result = np.array([[np.cos(theta) * np.exp(1j * lmbda),
-                            np.sin(theta) * np.exp(1j * mu)],
-                           [-np.sin(theta) * np.exp(-1j * mu),
-                            np.cos(theta) * np.exp(-1j * lmbda)]])
+        result = np.array(
+            [
+                [
+                    np.cos(theta) * np.exp(1j * lmbda),
+                    np.sin(theta) * np.exp(1j * mu),
+                ],
+                [
+                    -np.sin(theta) * np.exp(-1j * mu),
+                    np.cos(theta) * np.exp(-1j * lmbda),
+                ],
+            ]
+        )
         assert is_special_unitary(result)
         assert np.allclose(np.angle(result[0, 0] * a + result[1, 0] * b), 0)
-        assert (np.abs(result[0, 1] * a + result[1, 1] * b) < 1e-9)
+        assert np.abs(result[0, 1] * a + result[1, 1] * b) < 1e-9
         return result
 
     assert is_unitary(A)
@@ -72,7 +86,7 @@ def two_level_decompose(A):
         # After we are done with row, diagonal element is 1.
         assert np.allclose(cur_A[i, i], 1.0)
 
-    last_matrix = TwoLevelUnitary(cur_A[n - 2:n, n - 2:n], n, n - 2, n - 1)
+    last_matrix = TwoLevelUnitary(cur_A[n - 2 : n, n - 2 : n], n, n - 2, n - 1)
     if not last_matrix.is_identity():
         result.append(last_matrix)
 
@@ -101,9 +115,9 @@ def two_level_decompose_gray(A):
 def add_flips(flip_mask, gates):
     """Adds X gates for all qubits specified by qubit_mask."""
     qubit_id = 0
-    while (flip_mask > 0):
+    while flip_mask > 0:
         if (flip_mask % 2) == 1:
-            gates.append(GateSingle(Gate2('X'), qubit_id))
+            gates.append(GateSingle(Gate2("X"), qubit_id))
         flip_mask //= 2
         qubit_id += 1
 
@@ -118,7 +132,7 @@ def matrix_to_gates(A, **kwargs):
     :param A: 2^N x 2^N unitary matrix.
     :return: sequence of `Gate`s.
     """
-    if 'optimize' in kwargs and kwargs['optimize'] and A.shape[0] == 4:
+    if "optimize" in kwargs and kwargs["optimize"] and A.shape[0] == 4:
         return decompose_4x4_optimal(A)
 
     matrices = two_level_decompose_gray(A)
@@ -151,15 +165,19 @@ def matrix_to_qsharp(matrix, **kwargs):
       "ApplyUnitaryMatrix".
     :return: string - Q# code.
     """
-    op_name = 'ApplyUnitaryMatrix'
-    if 'op_name' in kwargs:
-        op_name = kwargs['op_name']
-    header = ('operation %s (qs : Qubit[]) : Unit is Adj + Ctl {\n' % op_name)
-    footer = '}\n'
+    op_name = "ApplyUnitaryMatrix"
+    if "op_name" in kwargs:
+        op_name = kwargs["op_name"]
+    header = "operation %s (qs : Qubit[]) : Unit is Adj + Ctl {\n" % op_name
+    footer = "}\n"
     qubits_count = int(np.log2(matrix.shape[0]))
-    code = '\n'.join(['  ' + gate.to_qsharp_command(qubits_count)
-                      for gate in matrix_to_gates(matrix, **kwargs)])
-    return header + code + '\n' + footer
+    code = "\n".join(
+        [
+            "  " + gate.to_qsharp_command(qubits_count)
+            for gate in matrix_to_gates(matrix, **kwargs)
+        ]
+    )
+    return header + code + "\n" + footer
 
 
 def matrix_to_cirq_circuit(A, **kwargs):
@@ -171,13 +189,13 @@ def matrix_to_cirq_circuit(A, **kwargs):
     import cirq
 
     def gate_to_cirq(gate2):
-        if gate2.name == 'X':
+        if gate2.name == "X":
             return cirq.X
-        elif gate2.name == 'Ry':
+        elif gate2.name == "Ry":
             return cirq.ry(-gate2.arg)
-        elif gate2.name == 'Rz':
+        elif gate2.name == "Rz":
             return cirq.rz(-gate2.arg)
-        elif gate2.name == 'R1':
+        elif gate2.name == "R1":
             return cirq.ZPowGate(exponent=gate2.arg / np.pi)
         else:
             raise RuntimeError("Can't implement: %s" % gate2)
@@ -189,18 +207,19 @@ def matrix_to_cirq_circuit(A, **kwargs):
 
     for gate in gates:
         if isinstance(gate, GateFC):
-            controls = [qubits[i]
-                        for i in range(qubits_count) if i != gate.qubit_id]
+            controls = [
+                qubits[i] for i in range(qubits_count) if i != gate.qubit_id
+            ]
             target = qubits[gate.qubit_id]
             arg_gates = controls + [target]
             cgate = cirq.ControlledGate(
-                gate_to_cirq(gate.gate2),
-                num_controls=qubits_count - 1)
+                gate_to_cirq(gate.gate2), num_controls=qubits_count - 1
+            )
             circuit.append(cgate.on(*arg_gates))
         elif isinstance(gate, GateSingle):
             circuit.append(gate_to_cirq(gate.gate2).on(qubits[gate.qubit_id]))
         else:
-            raise RuntimeError('Unknown gate type.')
+            raise RuntimeError("Unknown gate type.")
     return circuit
 
 
@@ -214,13 +233,13 @@ def matrix_to_qiskit_circuit(A, **kwargs):
     from qiskit.circuit.library import RYGate, RZGate, U1Gate, XGate
 
     def gate_to_qiskit(gate2):
-        if gate2.name == 'X':
+        if gate2.name == "X":
             return XGate()
-        elif gate2.name == 'Ry':
+        elif gate2.name == "Ry":
             return RYGate(-gate2.arg)
-        elif gate2.name == 'Rz':
+        elif gate2.name == "Rz":
             return RZGate(-gate2.arg)
-        elif gate2.name == 'R1':
+        elif gate2.name == "R1":
             return U1Gate(gate2.arg)
         else:
             raise RuntimeError("Can't implement: %s" % gate2)
@@ -232,8 +251,9 @@ def matrix_to_qiskit_circuit(A, **kwargs):
 
     for gate in gates:
         if isinstance(gate, GateFC):
-            controls = [qubits[i]
-                        for i in range(qubits_count) if i != gate.qubit_id]
+            controls = [
+                qubits[i] for i in range(qubits_count) if i != gate.qubit_id
+            ]
             target = qubits[gate.qubit_id]
             arg_gates = controls + [target]
             cgate = gate_to_qiskit(gate.gate2)
@@ -245,5 +265,5 @@ def matrix_to_qiskit_circuit(A, **kwargs):
         elif isinstance(gate, GateSingle):
             circuit.append(gate_to_qiskit(gate.gate2), [qubits[gate.qubit_id]])
         else:
-            raise RuntimeError('Unknown gate type.')
+            raise RuntimeError("Unknown gate type.")
     return circuit

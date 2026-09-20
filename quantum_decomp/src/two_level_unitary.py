@@ -25,7 +25,10 @@ class TwoLevelUnitary:
     def __repr__(self):
         self.order_indices()
         return "%s on (%d, %d)" % (
-            str(self.matrix_2x2), self.index1, self.index2)
+            str(self.matrix_2x2),
+            self.index1,
+            self.index2,
+        )
 
     def order_indices(self):
         if self.index1 > self.index2:
@@ -46,13 +49,12 @@ class TwoLevelUnitary:
         A[:, idx] = A[:, idx] @ self.matrix_2x2
 
     def inv(self):
-        return TwoLevelUnitary(self.matrix_2x2.conj().T,
-                               self.matrix_size,
-                               self.index1,
-                               self.index2)
+        return TwoLevelUnitary(
+            self.matrix_2x2.conj().T, self.matrix_size, self.index1, self.index2
+        )
 
     def apply_permutation(self, perm):
-        assert (len(perm) == self.matrix_size)
+        assert len(perm) == self.matrix_size
         self.index1 = perm[self.index1]
         self.index2 = perm[self.index2]
 
